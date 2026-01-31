@@ -7,15 +7,48 @@
  * @packageDocumentation
  */
 
-// Core exports (will be populated in Phase 1)
-// export { createTollgateSdk } from './core/sdk';
-// export type { SdkConfig } from './core/config';
-
-// x402 exports (will be populated in Phase 2)
-// export type { X402Metadata } from './x402/types';
-
-// Event exports (will be populated in Phase 3)
-// export type { AnalyticsEvent } from './events/schema';
+// Core exports
+export type {
+  CreateContextOptions,
+  captureResponseData,
+  createRequestContext,
+  createTimer,
+  extractClientIp,
+  getTimestamp,
+  hashIp,
+  isSensitiveHeader,
+  parseConfig,
+  RedactionConfig,
+  RequestContext,
+  ResponseData,
+  redactHeaders,
+  SdkConfig,
+  SdkConfigInput,
+  SdkConfigSchema,
+  safeParseConfig,
+  shouldSample,
+  Timer,
+  TransportConfig,
+} from "./core/index.js";
+// Event exports
+export type {
+  AnalyticsEvent,
+  AnalyticsEventSchema,
+  buildPaymentFailedEvent,
+  buildPaymentRequiredEvent,
+  buildPaymentVerifiedEvent,
+  buildRequestCompletedEvent,
+  buildRequestReceivedEvent,
+  EventType,
+  PaymentStatus,
+} from "./events/index.js";
+// x402 exports
+export type {
+  detectX402,
+  isPaymentRequired,
+  parsePaymentHeaders,
+  X402Metadata,
+} from "./x402/index.js";
 
 // Adapter exports (will be populated in Phase 5)
 // export { createExpressMiddleware } from './adapters/express';
