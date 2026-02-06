@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import type { RequestContext, ResponseData } from "../core/index.js";
+import type { RequestContext, ResponseData } from "../core/context.js";
 import { getTimestamp } from "../core/timing.js";
 import { SDK_NAME, SDK_VERSION } from "../index.js";
-import type { X402Metadata } from "../x402/index.js";
+import type { X402Metadata } from "../x402/types.js";
 import type { AnalyticsEvent } from "./schema.js";
 import { EventType, PaymentStatus } from "./types.js";
 

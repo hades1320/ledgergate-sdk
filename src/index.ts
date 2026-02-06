@@ -6,53 +6,56 @@
  *
  * @packageDocumentation
  */
+// TODO: Remove this biome ignore.
+/** biome-ignore-all lint/performance/noBarrelFile: false */
 
-// Core exports
-export type {
-  CreateContextOptions,
-  captureResponseData,
-  createRequestContext,
-  createTimer,
-  extractClientIp,
-  getTimestamp,
-  hashIp,
-  isSensitiveHeader,
+// Adapter exports
+export { createExpressMiddleware } from "./adapters/express.js";
+export {
+  type FastifyTollgateOptions,
+  fastifyTollgate,
+} from "./adapters/fastify.js";
+export type { SdkInstance } from "./adapters/types.js";
+export {
   parseConfig,
-  RedactionConfig,
-  RequestContext,
-  ResponseData,
-  redactHeaders,
-  SdkConfig,
-  SdkConfigInput,
+  type RedactionConfig,
+  RedactionConfigSchema,
+  type SdkConfig,
+  type SdkConfigInput,
   SdkConfigSchema,
   safeParseConfig,
-  shouldSample,
-  Timer,
-  TransportConfig,
-} from "./core/index.js";
-// Event exports
-export type {
-  AnalyticsEvent,
-  AnalyticsEventSchema,
+  type TransportConfig,
+  TransportConfigSchema,
+} from "./core/config.js";
+// Core exports
+export {
+  type CreateContextOptions,
+  captureResponseData,
+  createRequestContext,
+  type RequestContext,
+  type ResponseData,
+} from "./core/context.js";
+export { extractClientIp, hashIp } from "./core/privacy.js";
+export { isSensitiveHeader, redactHeaders } from "./core/redaction.js";
+export { shouldSample } from "./core/sampling.js";
+export { createTimer, getTimestamp, type Timer } from "./core/timing.js";
+export {
   buildPaymentFailedEvent,
   buildPaymentRequiredEvent,
   buildPaymentVerifiedEvent,
   buildRequestCompletedEvent,
   buildRequestReceivedEvent,
-  EventType,
-  PaymentStatus,
-} from "./events/index.js";
+} from "./events/builders.js";
+// Event exports
+export {
+  type AnalyticsEvent,
+  AnalyticsEventSchema,
+} from "./events/schema.js";
+export { EventType, type PaymentStatus } from "./events/types.js";
 // x402 exports
-export type {
-  detectX402,
-  isPaymentRequired,
-  parsePaymentHeaders,
-  X402Metadata,
-} from "./x402/index.js";
-
-// Adapter exports (will be populated in Phase 5)
-// export { createExpressMiddleware } from './adapters/express';
-// export { fastifyTollgate } from './adapters/fastify';
+export { detectX402, isPaymentRequired } from "./x402/detector.js";
+export { parsePaymentHeaders } from "./x402/parser.js";
+export type { X402Metadata } from "./x402/types.js";
 
 /**
  * SDK version - injected at build time
