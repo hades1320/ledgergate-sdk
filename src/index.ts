@@ -38,6 +38,7 @@ export {
 export { extractClientIp, hashIp } from "./core/privacy.js";
 export { isSensitiveHeader, redactHeaders } from "./core/redaction.js";
 export { shouldSample } from "./core/sampling.js";
+export { createTollgateSdk } from "./core/sdk.js";
 export { createTimer, getTimestamp, type Timer } from "./core/timing.js";
 export {
   buildPaymentFailedEvent,
