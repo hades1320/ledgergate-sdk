@@ -69,7 +69,7 @@ export function createRequestContext(
   if (redaction.hashIp) {
     const clientIp = extractClientIp(headers, remoteAddress);
     if (clientIp) {
-      clientIpHash = hashIp(clientIp);
+      clientIpHash = hashIp(clientIp, redaction.ipHashSalt);
     }
   }
 

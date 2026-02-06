@@ -6,6 +6,8 @@ import { z } from "zod";
 const DEFAULT_REDACTION = {
   hashIp: true,
   allowedHeaders: [] as string[],
+  // Optional salt for IP hashing; if undefined, internal default is used
+  ipHashSalt: undefined as string | undefined,
 } as const;
 
 /**
@@ -26,6 +28,8 @@ export const RedactionConfigSchema = z.object({
   hashIp: z.boolean().optional(),
   /** Headers allowed to pass through without redaction */
   allowedHeaders: z.array(z.string()).optional(),
+  /** Optional salt used for IP hashing */
+  ipHashSalt: z.string().min(1).optional(),
 });
 
 /**
@@ -77,6 +81,7 @@ export type SdkConfigInput = z.input<typeof SdkConfigSchema>;
 export interface RedactionConfig {
   readonly hashIp: boolean;
   readonly allowedHeaders: readonly string[];
+  readonly ipHashSalt?: string;
 }
 
 /**
@@ -107,12 +112,18 @@ export interface SdkConfig {
 function applyRedactionDefaults(
   input: z.output<typeof RedactionConfigSchema> | undefined
 ): RedactionConfig {
-  return {
+  const baseConfig: RedactionConfig = {
     hashIp: input?.hashIp ?? DEFAULT_REDACTION.hashIp,
     allowedHeaders: input?.allowedHeaders ?? [
       ...DEFAULT_REDACTION.allowedHeaders,
     ],
   };
+
+  if (input?.ipHashSalt) {
+    return { ...baseConfig, ipHashSalt: input.ipHashSalt };
+  }
+
+  return baseConfig;
 }
 
 /**
