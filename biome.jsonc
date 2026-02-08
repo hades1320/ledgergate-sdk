@@ -10,5 +10,15 @@
   "files": {
     "ignoreUnknown": true,
     "includes": ["src/**/*"]
+  },
+  "linter": {
+    "rules": {
+      "complexity": {
+        "useLiteralKeys": "warn"
+      },
+      "performance": {
+        "useTopLevelRegex": "warn"
+      }
+    }
   }
 }
