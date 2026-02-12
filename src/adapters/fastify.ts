@@ -1,5 +1,8 @@
 /** biome-ignore-all lint/suspicious/useAwait: false */
+
 import type { FastifyPluginAsync } from "fastify";
+import fp from "fastify-plugin";
+
 import type { RequestContext } from "../core/context.js";
 import { captureResponseData, createRequestContext } from "../core/context.js";
 import { shouldSample } from "../core/sampling.js";
@@ -30,7 +33,7 @@ export interface FastifyTollgateOptions {
  * @param fastify - Fastify instance
  * @param options - Plugin options containing the SDK instance
  */
-export const fastifyTollgate: FastifyPluginAsync<
+const fastifyTollgatePlugin: FastifyPluginAsync<
   FastifyTollgateOptions
 > = async (fastify, options) => {
   const { sdk } = options;
@@ -135,3 +138,9 @@ export const fastifyTollgate: FastifyPluginAsync<
     }
   });
 };
+
+// Wrap with fastify-plugin to break encapsulation and make hooks apply globally
+export const fastifyTollgate = fp(fastifyTollgatePlugin, {
+  fastify: "5.x",
+  name: "tollgate-sdk",
+});
