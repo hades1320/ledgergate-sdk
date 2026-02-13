@@ -132,6 +132,18 @@ const sdk = createTollgateSdk({
     maxRetries: 3, // Retry attempts (0-5)
     timeoutMs: 10000, // HTTP timeout (1000-30000 ms)
   },
+
+  x402: {
+    source: "header", // Where to read payment metadata: "header" | "body" | "both"
+    fieldMapping: {
+      // Custom key names for payment fields
+      address: "x-payment-address", // Default header/body key for payment address
+      amount: "x-payment-amount",   // Default header/body key for payment amount
+      network: "x-payment-network", // Default header/body key for payment network
+      token: "x-payment-token",     // Default header/body key for payment token
+      status: "x-payment-status",   // Default header/body key for payment status
+    },
+  },
 });
 ```
 
@@ -150,6 +162,12 @@ const sdk = createTollgateSdk({
 | `transport.flushIntervalMs` | `number` | `5000` | Auto-flush interval in milliseconds. |
 | `transport.maxRetries` | `number` | `3` | Maximum retry attempts for failed requests. |
 | `transport.timeoutMs` | `number` | `10000` | HTTP request timeout in milliseconds. |
+| `x402.source` | `"header"` \| `"body"` \| `"both"` | `"header"` | Where to read payment metadata from responses. |
+| `x402.fieldMapping.address` | `string` | `"x-payment-address"` | Custom header/body key for payment address. |
+| `x402.fieldMapping.amount` | `string` | `"x-payment-amount"` | Custom header/body key for payment amount. |
+| `x402.fieldMapping.network` | `string` | `"x-payment-network"` | Custom header/body key for payment network. |
+| `x402.fieldMapping.token` | `string` | `"x-payment-token"` | Custom header/body key for payment token. |
+| `x402.fieldMapping.status` | `string` | `"x-payment-status"` | Custom header/body key for payment status. |
 
 ---
 
@@ -242,25 +260,126 @@ interface AnalyticsEvent {
 
 ## x402 Detection
 
-The SDK automatically detects x402 payment signals from HTTP responses by:
+The SDK automatically detects x402 payment signals from HTTP responses. By default, it:
 
-1. Checking for **HTTP 402** status codes
-2. Parsing **`X-Payment-*`** headers (`X-Payment-Address`, `X-Payment-Amount`, `X-Payment-Network`, `X-Payment-Token`, `X-Payment-Status`)
-3. Parsing **`WWW-Authenticate: L402`** headers (Lightning/LSAT protocol)
+1. Checks for **HTTP 402** status codes
+2. Parses **`X-Payment-*`** headers (`X-Payment-Address`, `X-Payment-Amount`, `X-Payment-Network`, `X-Payment-Token`, `X-Payment-Status`)
+3. Parses **`WWW-Authenticate: L402`** headers (Lightning/LSAT protocol)
+
+### Configurable Detection
+
+You can customize **where** the SDK looks for payment metadata and **which keys** it uses:
+
+#### Metadata Source
+
+Choose where to read payment information:
+
+```typescript
+const sdk = createTollgateSdk({
+  apiKey: "your-api-key",
+  x402: {
+    source: "header", // Default: read from response headers only
+  },
+});
+```
+
+**Available sources:**
+- `"header"` (default) — Read from response headers only
+- `"body"` — Read from JSON response body only
+- `"both"` — Read from both (headers take precedence)
+
+#### Using Response Body
+
+When using `source: "body"` or `source: "both"`, you need to provide the response body to the SDK:
+
+**Express:**
+```typescript
+app.get("/resource", (req, res) => {
+  const responseData = {
+    "x-payment-address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+    "x-payment-amount": "1000",
+    "x-payment-network": "bitcoin",
+  };
+  
+  // Attach body for SDK to detect payment metadata
+  res.locals['x402Body'] = responseData;
+  
+  res.status(402).json(responseData);
+});
+```
+
+**Fastify:**
+```typescript
+app.get("/resource", async (request, reply) => {
+  const responseData = {
+    "x-payment-address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+    "x-payment-amount": "1000",
+  };
+  
+  // Attach body for SDK to detect payment metadata
+  request.x402Body = responseData;
+  
+  reply.status(402).send(responseData);
+});
+```
+
+#### Custom Field Mapping
+
+Different APIs use different key names. Customize the field mapping to match your API:
+
+```typescript
+const sdk = createTollgateSdk({
+  apiKey: "your-api-key",
+  x402: {
+    source: "header", // or "body" or "both"
+    fieldMapping: {
+      address: "pay-to",        // Instead of "x-payment-address"
+      amount: "pay-amount",     // Instead of "x-payment-amount"
+      network: "pay-network",   // Instead of "x-payment-network"
+      token: "pay-token",       // Instead of "x-payment-token"
+      status: "pay-status",     // Instead of "x-payment-status"
+    },
+  },
+});
+```
+
+Now the SDK will look for `pay-to`, `pay-amount`, etc. instead of the default `x-payment-*` keys.
+
+### Direct Detection Utilities
 
 You can also use the detection utilities directly:
 
 ```typescript
-import { detectX402, isPaymentRequired, parsePaymentHeaders } from "tollgate-sdk";
+import { detectX402, isPaymentRequired, parsePaymentHeaders, parsePaymentBody } from "tollgate-sdk";
 
-// Check if a response is x402
+// Detect from headers (default behavior)
 const metadata = detectX402(statusCode, responseHeaders);
+
+// Detect with custom config
+const customMetadata = detectX402(
+  statusCode,
+  responseHeaders,
+  {
+    source: "both",
+    fieldMapping: { address: "wallet", amount: "price" }
+  },
+  responseBody
+);
 
 // Simple 402 check
 const is402 = isPaymentRequired(statusCode);
 
 // Parse payment headers manually
-const paymentInfo = parsePaymentHeaders(responseHeaders);
+const headerInfo = parsePaymentHeaders(responseHeaders);
+
+// Parse payment body manually
+const bodyInfo = parsePaymentBody(responseBody);
+
+// Parse with custom field mapping
+const customHeaderInfo = parsePaymentHeaders(
+  responseHeaders,
+  { address: "pay-to", amount: "pay-amt" }
+);
 ```
 
 ---
@@ -353,9 +472,15 @@ process.on("SIGINT", async () => {
 
 | Export | Type | Description |
 |--------|------|-------------|
-| `detectX402(statusCode, headers)` | Function | Detects x402 signals and returns `X402Metadata` or `undefined`. |
+| `detectX402(statusCode, headers, config?, body?)` | Function | Detects x402 signals and returns `X402Metadata` or `undefined`. Supports custom config and body parsing. |
 | `isPaymentRequired(statusCode)` | Function | Returns `true` if status code is 402. |
-| `parsePaymentHeaders(headers)` | Function | Parses `X-Payment-*` and L402 headers. |
+| `parsePaymentHeaders(headers, fieldMapping?)` | Function | Parses `X-Payment-*` and L402 headers. Supports custom field mapping. |
+| `parsePaymentBody(body, fieldMapping?)` | Function | Parses payment metadata from JSON response body. Supports custom field mapping. |
+| `X402DetectionConfig` | Interface | Configuration for x402 detection (source and field mapping). |
+| `PaymentMetadataSource` | Type | Union type: `"header" \| "body" \| "both"`. |
+| `PaymentFieldMapping` | Interface | Custom key mapping for payment fields. |
+| `X402DetectionConfigSchema` | Zod Schema | Validation schema for x402 detection config. |
+| `applyX402DetectionDefaults(input?)` | Function | Applies defaults to x402 detection configuration. |
 
 ### Privacy
 

@@ -16,10 +16,11 @@ import {
 import { detectX402 } from "../x402/detector.js";
 import type { SdkInstance } from "./types.js";
 
-// Extend FastifyRequest to include x402Context
+// Extend FastifyRequest to include x402Context and optional x402Body
 declare module "fastify" {
   interface FastifyRequest {
     x402Context?: RequestContext;
+    x402Body?: Record<string, unknown>;
   }
 }
 
@@ -109,7 +110,16 @@ const fastifyTollgatePlugin: FastifyPluginAsync<
         string,
         string | string[] | undefined
       >;
-      const x402Metadata = detectX402(reply.statusCode, headers);
+
+      // Get optional response body from request.x402Body if provided
+      const responseBody = request.x402Body;
+
+      const x402Metadata = detectX402(
+        reply.statusCode,
+        headers,
+        sdk.config.x402,
+        responseBody
+      );
 
       // Determine event
       if (x402Metadata) {
