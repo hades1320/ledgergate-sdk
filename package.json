@@ -20,7 +20,9 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsup",
@@ -31,6 +33,7 @@
     "typecheck": "tsc --noEmit",
     "check": "ultracite check",
     "fix": "ultracite fix",
+    "prepublishOnly": "npm run check && npm test && npm run build",
     "prepare": "lefthook install"
   },
   "keywords": [
