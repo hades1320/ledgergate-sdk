@@ -28,10 +28,27 @@ export interface FastifyTollgateOptions {
 }
 
 /**
- * Fastify plugin for x402 observability
+ * Fastify plugin for x402 observability.
+ *
+ * Registers `onRequest` and `onResponse` hooks to automatically track
+ * request lifecycle events and detect x402 payment signals. The request
+ * context is available via `request.x402Context` in your route handlers.
+ *
+ * All SDK logic is wrapped in `try-catch` to ensure fail-open behavior.
  *
  * @param fastify - Fastify instance
  * @param options - Plugin options containing the SDK instance
+ *
+ * @example
+ * ```typescript
+ * import Fastify from "fastify";
+ * import { createTollgateSdk, fastifyTollgate } from "tollgate-sdk";
+ *
+ * const sdk = createTollgateSdk({ apiKey: "your-api-key" });
+ * const app = Fastify();
+ *
+ * await app.register(fastifyTollgate, { sdk });
+ * ```
  */
 const fastifyTollgatePlugin: FastifyPluginAsync<
   FastifyTollgateOptions

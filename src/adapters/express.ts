@@ -95,10 +95,29 @@ function handleResponseFinish(
 }
 
 /**
- * Creates an Express middleware for x402 observability
+ * Creates an Express middleware for x402 observability.
  *
- * @param sdk - The initialized SDK instance
- * @returns Express RequestHandler
+ * The middleware automatically:
+ * 1. Creates a request context with a unique ID, timer, and redacted headers
+ * 2. Emits a `request.received` event (if sampled)
+ * 3. Hooks into the response `finish` event to emit completion/payment events
+ *
+ * All SDK logic is wrapped in `try-catch` to ensure fail-open behavior —
+ * the middleware will never throw or break your application.
+ *
+ * @param sdk - The initialized SDK instance from `createTollgateSdk()`
+ * @returns Express `RequestHandler` middleware
+ *
+ * @example
+ * ```typescript
+ * import express from "express";
+ * import { createTollgateSdk, createExpressMiddleware } from "tollgate-sdk";
+ *
+ * const sdk = createTollgateSdk({ apiKey: "your-api-key" });
+ * const app = express();
+ *
+ * app.use(createExpressMiddleware(sdk));
+ * ```
  */
 export function createExpressMiddleware(sdk: SdkInstance): RequestHandler {
   return (req: Request, res: Response, next: NextFunction) => {
