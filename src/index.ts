@@ -54,8 +54,15 @@ export {
 } from "./events/schema.js";
 export { EventType, type PaymentStatus } from "./events/types.js";
 // x402 exports
+export {
+  applyX402DetectionDefaults,
+  type PaymentFieldMapping,
+  type PaymentMetadataSource,
+  type X402DetectionConfig,
+  X402DetectionConfigSchema,
+} from "./x402/config.js";
 export { detectX402, isPaymentRequired } from "./x402/detector.js";
-export { parsePaymentHeaders } from "./x402/parser.js";
+export { parsePaymentBody, parsePaymentHeaders } from "./x402/parser.js";
 export type { X402Metadata } from "./x402/types.js";
 
 /**

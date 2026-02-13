@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  applyX402DetectionDefaults,
+  type X402DetectionConfig,
+  X402DetectionConfigSchema,
+} from "../x402/config.js";
 
 /**
  * Default redaction configuration values
@@ -68,6 +73,9 @@ export const SdkConfigSchema = z.object({
 
   /** Enable debug logging to console */
   debug: z.boolean().optional(),
+
+  /** x402 payment detection configuration */
+  x402: X402DetectionConfigSchema.optional(),
 });
 
 /**
@@ -104,6 +112,7 @@ export interface SdkConfig {
   readonly transport: TransportConfig;
   readonly sampleRate: number;
   readonly debug: boolean;
+  readonly x402: X402DetectionConfig;
 }
 
 /**
@@ -156,6 +165,7 @@ export function parseConfig(input: SdkConfigInput): SdkConfig {
     transport: applyTransportDefaults(parsed.transport),
     sampleRate: parsed.sampleRate ?? 1,
     debug: parsed.debug ?? false,
+    x402: applyX402DetectionDefaults(parsed.x402),
   };
 }
 
@@ -178,6 +188,7 @@ export function safeParseConfig(
         transport: applyTransportDefaults(result.data.transport),
         sampleRate: result.data.sampleRate ?? 1,
         debug: result.data.debug ?? false,
+        x402: applyX402DetectionDefaults(result.data.x402),
       },
     };
   }

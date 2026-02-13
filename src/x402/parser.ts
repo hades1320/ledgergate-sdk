@@ -1,3 +1,5 @@
+import type { PaymentFieldMapping } from "./config.js";
+import { DEFAULT_FIELD_MAPPING } from "./config.js";
 import type { X402Metadata } from "./types.js";
 
 /**
@@ -22,13 +24,24 @@ interface MutableX402Metadata {
  * Handles X-Payment-Address, X-Payment-Amount, etc.
  *
  * @param headers - Response headers
+ * @param fieldMapping - Optional custom key mapping for payment fields
  * @returns Partial metadata extracted from headers
  */
 export function parsePaymentHeaders(
-  headers: Record<string, string | string[] | undefined>
+  headers: Record<string, string | string[] | undefined>,
+  fieldMapping?: PaymentFieldMapping
 ): Partial<X402Metadata> {
   const result: MutableX402Metadata = {
     isPaymentRequired: false,
+  };
+
+  // Use provided mapping or defaults
+  const mapping = {
+    address: fieldMapping?.address ?? DEFAULT_FIELD_MAPPING.address,
+    amount: fieldMapping?.amount ?? DEFAULT_FIELD_MAPPING.amount,
+    network: fieldMapping?.network ?? DEFAULT_FIELD_MAPPING.network,
+    token: fieldMapping?.token ?? DEFAULT_FIELD_MAPPING.token,
+    status: fieldMapping?.status ?? DEFAULT_FIELD_MAPPING.status,
   };
 
   const getHeader = (name: string): string | undefined => {
@@ -39,28 +52,28 @@ export function parsePaymentHeaders(
     return value;
   };
 
-  // Extract core payment fields from common X-Payment-* headers
-  const address = getHeader("x-payment-address");
+  // Extract core payment fields from headers using configured keys
+  const address = getHeader(mapping.address);
   if (address) {
     result.paymentAddress = address;
   }
 
-  const amount = getHeader("x-payment-amount");
+  const amount = getHeader(mapping.amount);
   if (amount) {
     result.paymentAmount = amount;
   }
 
-  const network = getHeader("x-payment-network");
+  const network = getHeader(mapping.network);
   if (network) {
     result.paymentNetwork = network.toLowerCase();
   }
 
-  const token = getHeader("x-payment-token");
+  const token = getHeader(mapping.token);
   if (token) {
     result.paymentToken = token.toUpperCase();
   }
 
-  const status = getHeader("x-payment-status");
+  const status = getHeader(mapping.status);
   if (status) {
     const normalizedStatus = status.toLowerCase();
     if (
@@ -94,4 +107,66 @@ function parseL402Header(value: string, target: MutableX402Metadata): void {
     target.paymentAddress = invoiceMatch[1]; // In L402, the invoice is often the address/identifier
     target.paymentNetwork = "lightning";
   }
+}
+
+/**
+ * Parses payment metadata from a JSON response body
+ *
+ * @param body - Parsed JSON response body
+ * @param fieldMapping - Optional custom key mapping for payment fields
+ * @returns Partial metadata extracted from body
+ */
+export function parsePaymentBody(
+  body: Record<string, unknown>,
+  fieldMapping?: PaymentFieldMapping
+): Partial<X402Metadata> {
+  const result: MutableX402Metadata = {
+    isPaymentRequired: false,
+  };
+
+  // Use provided mapping or defaults
+  const mapping = {
+    address: fieldMapping?.address ?? DEFAULT_FIELD_MAPPING.address,
+    amount: fieldMapping?.amount ?? DEFAULT_FIELD_MAPPING.amount,
+    network: fieldMapping?.network ?? DEFAULT_FIELD_MAPPING.network,
+    token: fieldMapping?.token ?? DEFAULT_FIELD_MAPPING.token,
+    status: fieldMapping?.status ?? DEFAULT_FIELD_MAPPING.status,
+  };
+
+  // Extract core payment fields from body using configured keys
+  const address = body[mapping.address];
+  if (typeof address === "string" && address) {
+    result.paymentAddress = address;
+  }
+
+  const amount = body[mapping.amount];
+  if (typeof amount === "string" && amount) {
+    result.paymentAmount = amount;
+  }
+
+  const network = body[mapping.network];
+  if (typeof network === "string" && network) {
+    result.paymentNetwork = network.toLowerCase();
+  }
+
+  const token = body[mapping.token];
+  if (typeof token === "string" && token) {
+    result.paymentToken = token.toUpperCase();
+  }
+
+  const status = body[mapping.status];
+  if (typeof status === "string") {
+    const normalizedStatus = status.toLowerCase();
+    if (
+      normalizedStatus === "required" ||
+      normalizedStatus === "verified" ||
+      normalizedStatus === "failed"
+    ) {
+      result.paymentStatus = normalizedStatus;
+    }
+  }
+
+  // Create final result without isPaymentRequired
+  const { isPaymentRequired: _, ...finalResult } = result;
+  return finalResult;
 }

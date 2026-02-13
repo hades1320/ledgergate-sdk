@@ -77,7 +77,19 @@ function handleResponseFinish(
       string,
       string | string[] | undefined
     >;
-    const x402Metadata = detectX402(res.statusCode, headers);
+
+    // Get optional response body from res.locals if provided
+    // biome-ignore lint/complexity/useLiteralKeys: TS requires bracket notation for index signatures
+    const responseBody = res.locals["x402Body"] as
+      | Record<string, unknown>
+      | undefined;
+
+    const x402Metadata = detectX402(
+      res.statusCode,
+      headers,
+      sdk.config.x402,
+      responseBody
+    );
 
     // Determine which event to emit based on x402 state
     if (x402Metadata) {
