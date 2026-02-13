@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePaymentHeaders } from "./parser.js";
+import { parsePaymentBody, parsePaymentHeaders } from "./parser.js";
 
 describe("parsePaymentHeaders", () => {
   describe("x-payment-address header", () => {
@@ -204,5 +204,196 @@ describe("parsePaymentHeaders", () => {
         paymentAmount: "100",
       });
     });
+  });
+});
+
+describe("parsePaymentHeaders with custom fieldMapping", () => {
+  it("should use custom field mapping for address", () => {
+    const result = parsePaymentHeaders(
+      {
+        "pay-to": "addr123",
+      },
+      { address: "pay-to" }
+    );
+    expect(result.paymentAddress).toBe("addr123");
+  });
+
+  it("should use custom field mapping for all fields", () => {
+    const result = parsePaymentHeaders(
+      {
+        "pay-addr": "addr456",
+        "pay-amt": "1000",
+        "pay-net": "ETHEREUM",
+        "pay-tok": "eth",
+        "pay-stat": "VERIFIED",
+      },
+      {
+        address: "pay-addr",
+        amount: "pay-amt",
+        network: "pay-net",
+        token: "pay-tok",
+        status: "pay-stat",
+      }
+    );
+
+    expect(result).toEqual({
+      paymentAddress: "addr456",
+      paymentAmount: "1000",
+      paymentNetwork: "ethereum",
+      paymentToken: "ETH",
+      paymentStatus: "verified",
+    });
+  });
+
+  it("should use defaults for unmapped fields", () => {
+    const result = parsePaymentHeaders(
+      {
+        "custom-address": "addr789",
+        "x-payment-amount": "500",
+      },
+      { address: "custom-address" }
+    );
+    expect(result.paymentAddress).toBe("addr789");
+    expect(result.paymentAmount).toBe("500");
+  });
+});
+
+describe("parsePaymentBody", () => {
+  it("should extract payment address from body", () => {
+    const result = parsePaymentBody({
+      "x-payment-address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+    });
+    expect(result.paymentAddress).toBe(
+      "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+    );
+  });
+
+  it("should extract payment amount from body", () => {
+    const result = parsePaymentBody({
+      "x-payment-amount": "1000",
+    });
+    expect(result.paymentAmount).toBe("1000");
+  });
+
+  it("should extract and lowercase network", () => {
+    const result = parsePaymentBody({
+      "x-payment-network": "Bitcoin",
+    });
+    expect(result.paymentNetwork).toBe("bitcoin");
+  });
+
+  it("should extract and uppercase token", () => {
+    const result = parsePaymentBody({
+      "x-payment-token": "btc",
+    });
+    expect(result.paymentToken).toBe("BTC");
+  });
+
+  it("should extract valid status values", () => {
+    const validStatuses = ["required", "verified", "failed"];
+    for (const status of validStatuses) {
+      const result = parsePaymentBody({
+        "x-payment-status": status,
+      });
+      expect(result.paymentStatus).toBe(status);
+    }
+  });
+
+  it("should ignore invalid status values", () => {
+    const result = parsePaymentBody({
+      "x-payment-status": "pending",
+    });
+    expect(result.paymentStatus).toBeUndefined();
+  });
+
+  it("should parse all payment fields together", () => {
+    const result = parsePaymentBody({
+      "x-payment-address": "addr123",
+      "x-payment-amount": "500",
+      "x-payment-network": "lightning",
+      "x-payment-token": "sats",
+      "x-payment-status": "required",
+    });
+
+    expect(result).toEqual({
+      paymentAddress: "addr123",
+      paymentAmount: "500",
+      paymentNetwork: "lightning",
+      paymentToken: "SATS",
+      paymentStatus: "required",
+    });
+  });
+
+  it("should handle empty body object", () => {
+    const result = parsePaymentBody({});
+    expect(result).toEqual({});
+  });
+
+  it("should ignore non-string values", () => {
+    const result = parsePaymentBody({
+      "x-payment-address": 123,
+      "x-payment-amount": null,
+      "x-payment-network": undefined,
+      "x-payment-token": true,
+    });
+    expect(result).toEqual({});
+  });
+
+  it("should not include isPaymentRequired in result", () => {
+    const result = parsePaymentBody({
+      "x-payment-address": "addr123",
+    });
+    expect("isPaymentRequired" in result).toBe(false);
+  });
+});
+
+describe("parsePaymentBody with custom fieldMapping", () => {
+  it("should use custom field mapping for address", () => {
+    const result = parsePaymentBody(
+      {
+        address: "addr123",
+      },
+      { address: "address" }
+    );
+    expect(result.paymentAddress).toBe("addr123");
+  });
+
+  it("should use custom field mapping for all fields", () => {
+    const result = parsePaymentBody(
+      {
+        wallet: "addr456",
+        price: "1000",
+        blockchain: "ETHEREUM",
+        currency: "eth",
+        state: "VERIFIED",
+      },
+      {
+        address: "wallet",
+        amount: "price",
+        network: "blockchain",
+        token: "currency",
+        status: "state",
+      }
+    );
+
+    expect(result).toEqual({
+      paymentAddress: "addr456",
+      paymentAmount: "1000",
+      paymentNetwork: "ethereum",
+      paymentToken: "ETH",
+      paymentStatus: "verified",
+    });
+  });
+
+  it("should use defaults for unmapped fields", () => {
+    const result = parsePaymentBody(
+      {
+        customAddress: "addr789",
+        "x-payment-amount": "500",
+      },
+      { address: "customAddress" }
+    );
+    expect(result.paymentAddress).toBe("addr789");
+    expect(result.paymentAmount).toBe("500");
   });
 });

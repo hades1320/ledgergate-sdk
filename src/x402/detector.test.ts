@@ -166,3 +166,156 @@ describe("isPaymentRequired", () => {
     expect(isPaymentRequired(500)).toBe(false);
   });
 });
+
+describe("detectX402 with body source", () => {
+  const config = {
+    source: "body" as const,
+    fieldMapping: {
+      address: "x-payment-address",
+      amount: "x-payment-amount",
+      network: "x-payment-network",
+      token: "x-payment-token",
+      status: "x-payment-status",
+    },
+  };
+
+  it("should extract metadata from body when source is 'body'", () => {
+    const result = detectX402(402, {}, config, {
+      "x-payment-address": "addr123",
+      "x-payment-amount": "1000",
+    });
+    expect(result?.paymentAddress).toBe("addr123");
+    expect(result?.paymentAmount).toBe("1000");
+  });
+
+  it("should ignore headers when source is 'body'", () => {
+    const result = detectX402(
+      402,
+      { "x-payment-address": "header-addr" },
+      config,
+      { "x-payment-address": "body-addr" }
+    );
+    expect(result?.paymentAddress).toBe("body-addr");
+  });
+
+  it("should return undefined when body is not provided", () => {
+    const result = detectX402(200, {}, config, undefined);
+    expect(result).toBeUndefined();
+  });
+});
+
+describe("detectX402 with both source", () => {
+  const config = {
+    source: "both" as const,
+    fieldMapping: {
+      address: "x-payment-address",
+      amount: "x-payment-amount",
+      network: "x-payment-network",
+      token: "x-payment-token",
+      status: "x-payment-status",
+    },
+  };
+
+  it("should merge metadata from headers and body", () => {
+    const result = detectX402(
+      402,
+      { "x-payment-address": "header-addr" },
+      config,
+      { "x-payment-amount": "1000" }
+    );
+    expect(result?.paymentAddress).toBe("header-addr");
+    expect(result?.paymentAmount).toBe("1000");
+  });
+
+  it("should give headers precedence over body", () => {
+    const result = detectX402(
+      402,
+      { "x-payment-address": "header-addr" },
+      config,
+      { "x-payment-address": "body-addr" }
+    );
+    expect(result?.paymentAddress).toBe("header-addr");
+  });
+
+  it("should work when only headers have metadata", () => {
+    const result = detectX402(
+      402,
+      { "x-payment-address": "header-addr" },
+      config,
+      {}
+    );
+    expect(result?.paymentAddress).toBe("header-addr");
+  });
+
+  it("should work when only body has metadata", () => {
+    const result = detectX402(402, {}, config, {
+      "x-payment-address": "body-addr",
+    });
+    expect(result?.paymentAddress).toBe("body-addr");
+  });
+});
+
+describe("detectX402 with custom fieldMapping", () => {
+  const config = {
+    source: "header" as const,
+    fieldMapping: {
+      address: "pay-to",
+      amount: "pay-amt",
+      network: "pay-net",
+      token: "pay-tok",
+      status: "pay-stat",
+    },
+  };
+
+  it("should use custom field mapping for headers", () => {
+    const result = detectX402(
+      402,
+      {
+        "pay-to": "addr123",
+        "pay-amt": "500",
+        "pay-net": "BITCOIN",
+        "pay-tok": "btc",
+        "pay-stat": "required",
+      },
+      config
+    );
+    expect(result).toEqual({
+      isPaymentRequired: true,
+      paymentAddress: "addr123",
+      paymentAmount: "500",
+      paymentNetwork: "bitcoin",
+      paymentToken: "BTC",
+      paymentStatus: "required",
+    });
+  });
+
+  it("should work with body source and custom field mapping", () => {
+    const bodyConfig = {
+      source: "body" as const,
+      fieldMapping: {
+        address: "wallet",
+        amount: "price",
+        network: "blockchain",
+        token: "currency",
+        status: "state",
+      },
+    };
+
+    const result = detectX402(402, {}, bodyConfig, {
+      wallet: "addr456",
+      price: "1000",
+      blockchain: "ethereum",
+      currency: "eth",
+      state: "verified",
+    });
+
+    expect(result).toEqual({
+      isPaymentRequired: true,
+      paymentAddress: "addr456",
+      paymentAmount: "1000",
+      paymentNetwork: "ethereum",
+      paymentToken: "ETH",
+      paymentStatus: "verified",
+    });
+  });
+});
