@@ -43,10 +43,25 @@
     "sdk",
     "middleware",
     "express",
-    "fastify"
+    "fastify",
+    "ledgergate",
+    "payment",
+    "http402"
   ],
-  "author": "",
+  "author": "hades1320 <hades1320@proton.me> (https://github.com/hades1320)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hades1320/ledgergate-sdk.git"
+  },
+  "homepage": "https://github.com/hades1320/ledgergate-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/hades1320/ledgergate-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
   "engines": {
     "node": ">=18.0.0"
   },

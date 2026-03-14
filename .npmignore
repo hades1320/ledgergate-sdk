@@ -1,0 +1,24 @@
+# Source files
+src/
+
+# Tests
+**/*.test.ts
+**/*.spec.ts
+
+# Config files
+tsup.config.ts
+tsconfig.json
+biome.jsonc
+vitest.config.ts
+lefthook.yml
+
+# Dev/CI
+.gitignore
+.github/
+coverage/
+docs/
+
+# Misc
+*.log
+.env*
+.DS_Store

@@ -2,7 +2,7 @@
 
 > Lightweight, non-custodial observability for x402-monetized HTTP APIs.
 
-[![npm version](https://img.shields.io/npm/v/ledgergate-sdk)](https://www.npmjs.com/package/ledgergate-sdk)
+[![npm version](https://img.shields.io/npm/v/%40ledgergate%2Fledgergate-sdk)](https://www.npmjs.com/package/@ledgergate/ledgergate-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
@@ -38,7 +38,7 @@
 ## Installation
 
 ```bash
-npm install ledgergate-sdk
+npm install @ledgergate/ledgergate-sdk
 ```
 
 > **Peer dependencies**: `express` and `fastify` are optional. Install whichever framework you use.
