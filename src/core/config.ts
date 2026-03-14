@@ -76,6 +76,9 @@ export const SdkConfigSchema = z.object({
 
   /** x402 payment detection configuration */
   x402: X402DetectionConfigSchema.optional(),
+
+  /** Paths to exclude from SDK tracking (exact match or wildcard with *) */
+  excludePaths: z.array(z.string()).optional(),
 });
 
 /**
@@ -113,6 +116,8 @@ export interface SdkConfig {
   readonly sampleRate: number;
   readonly debug: boolean;
   readonly x402: X402DetectionConfig;
+  /** Paths excluded from SDK event capture (exact strings or wildcard patterns with *) */
+  readonly excludePaths: readonly string[];
 }
 
 /**
@@ -160,12 +165,13 @@ export function parseConfig(input: SdkConfigInput): SdkConfig {
   const parsed = SdkConfigSchema.parse(input);
   return {
     apiKey: parsed.apiKey,
-    endpoint: parsed.endpoint ?? "https://api.tollgate.io/v1/events",
+    endpoint: parsed.endpoint ?? "https://api.ledgergate.io/v1/events",
     redaction: applyRedactionDefaults(parsed.redaction),
     transport: applyTransportDefaults(parsed.transport),
     sampleRate: parsed.sampleRate ?? 1,
     debug: parsed.debug ?? false,
     x402: applyX402DetectionDefaults(parsed.x402),
+    excludePaths: parsed.excludePaths ?? [],
   };
 }
 
@@ -183,12 +189,13 @@ export function safeParseConfig(
       success: true,
       data: {
         apiKey: result.data.apiKey,
-        endpoint: result.data.endpoint ?? "https://api.tollgate.io/v1/events",
+        endpoint: result.data.endpoint ?? "https://api.ledgergate.io/v1/events",
         redaction: applyRedactionDefaults(result.data.redaction),
         transport: applyTransportDefaults(result.data.transport),
         sampleRate: result.data.sampleRate ?? 1,
         debug: result.data.debug ?? false,
         x402: applyX402DetectionDefaults(result.data.x402),
+        excludePaths: result.data.excludePaths ?? [],
       },
     };
   }

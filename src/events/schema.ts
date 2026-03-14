@@ -54,7 +54,7 @@ export const AnalyticsEventSchema = z.object({
 
   /** SDK metadata */
   sdk: z.object({
-    /** SDK name (tollgate-sdk) */
+    /** SDK name (ledgergate-sdk) */
     name: z.string(),
     /** SDK version */
     version: z.string(),

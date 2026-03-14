@@ -33,8 +33,8 @@ describe("sendBatch", () => {
       path: `/api/test/${id}`,
     },
     sdk: {
-      name: "tollgate-sdk",
-      version: "0.1.0",
+      name: "ledgergate-sdk",
+      version: "1.0.0",
     },
   });
 
@@ -91,7 +91,7 @@ describe("sendBatch", () => {
           headers: expect.objectContaining({
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
-            "User-Agent": expect.stringContaining("tollgate-sdk"),
+            "User-Agent": expect.stringContaining("ledgergate-sdk"),
           }),
         })
       );

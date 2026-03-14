@@ -32,7 +32,7 @@ export async function sendBatch(
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
-            "User-Agent": "tollgate-sdk/0.1.0",
+            "User-Agent": "ledgergate-sdk/1.0.0",
           },
           body: JSON.stringify(events),
           signal: controller.signal,

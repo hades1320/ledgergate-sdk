@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-03-14
+
+### Changed
+
+- **Brand migration** — Renamed all project identifiers and documentation from **Tollgate** to **Ledgergate**.
+- **SDK Renaming** — Major rebranding of package to `ledgergate-sdk`. All internal exports and constants now use the Ledgergate prefix.
+- **Updated Default Endpoint** — The default reporting endpoint is now `https://api.ledgergate.com/v1/events`.
+
+### Added
+
+- **URL Path Exclusion** — Added `excludePaths` configuration option to allow users to specify URL patterns (including wildcards like `/api/public/*`) that should be ignored by the SDK middleware.
+
 ## [0.2.0] - 2026-02-13
 
 ### Added
@@ -25,9 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Core SDK** — `createTollgateSdk()` factory with Zod-validated configuration and sensible defaults.
+- **Core SDK** — `createLedgergateSdk()` factory with Zod-validated configuration and sensible defaults.
 - **Express adapter** — `createExpressMiddleware()` for drop-in Express integration with fail-open semantics.
-- **Fastify adapter** — `fastifyTollgate` plugin for Fastify with `onRequest` / `onResponse` hooks.
+- **Fastify adapter** — `fastifyLedgergate` plugin for Fastify with `onRequest` / `onResponse` hooks.
 - **x402 detection** — Automatic detection of HTTP 402 responses, `X-Payment-*` headers, and L402/LSAT `WWW-Authenticate` headers.
 - **Event system** — Versioned analytics event schema (v1.0) with builders for `request.received`, `payment.required`, `payment.verified`, `payment.failed`, and `request.completed` events.
 - **Batched transport** — In-memory event queue with configurable batch size, auto-flush interval, and exponential backoff retry with jitter.

@@ -14,8 +14,8 @@ describe("AnalyticsEventSchema", () => {
       path: "/api/test",
     },
     sdk: {
-      name: "tollgate-sdk",
-      version: "0.1.0",
+      name: "ledgergate-sdk",
+      version: "1.0.0",
     },
   };
 
@@ -229,7 +229,7 @@ describe("AnalyticsEventSchema", () => {
     it("should require sdk.version", () => {
       const event = {
         ...validEvent,
-        sdk: { name: "tollgate-sdk" },
+        sdk: { name: "ledgergate-sdk" },
       };
       const result = AnalyticsEventSchema.safeParse(event);
       expect(result.success).toBe(false);
@@ -264,8 +264,8 @@ describe("AnalyticsEventSchema", () => {
           status: PaymentStatus.REQUIRED,
         },
         sdk: {
-          name: "tollgate-sdk",
-          version: "0.1.0",
+          name: "ledgergate-sdk",
+          version: "1.0.0",
         },
       };
 

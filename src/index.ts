@@ -1,5 +1,5 @@
 /**
- * tollgate-sdk
+ * ledgergate-sdk
  *
  * x402 Observability SDK for HTTP APIs
  * Lightweight, non-custodial observability for x402-monetized APIs.
@@ -12,8 +12,8 @@
 // Adapter exports
 export { createExpressMiddleware } from "./adapters/express.js";
 export {
-  type FastifyTollgateOptions,
-  fastifyTollgate,
+  type FastifyLedgergateOptions,
+  fastifyLedgergate,
 } from "./adapters/fastify.js";
 export type { SdkInstance } from "./adapters/types.js";
 export {
@@ -35,10 +35,11 @@ export {
   type RequestContext,
   type ResponseData,
 } from "./core/context.js";
+export { isExcludedPath } from "./core/paths.js";
 export { extractClientIp, hashIp } from "./core/privacy.js";
 export { isSensitiveHeader, redactHeaders } from "./core/redaction.js";
 export { shouldSample } from "./core/sampling.js";
-export { createTollgateSdk } from "./core/sdk.js";
+export { createLedgergateSdk } from "./core/sdk.js";
 export { createTimer, getTimestamp, type Timer } from "./core/timing.js";
 export {
   buildPaymentFailedEvent,
@@ -68,9 +69,9 @@ export type { X402Metadata } from "./x402/types.js";
 /**
  * SDK version - injected at build time
  */
-export const SDK_VERSION = "0.1.0";
+export const SDK_VERSION = "1.0.0";
 
 /**
  * SDK name constant
  */
-export const SDK_NAME = "tollgate-sdk" as const;
+export const SDK_NAME = "ledgergate-sdk" as const;

@@ -1,6 +1,6 @@
 {
-  "name": "tollgate-sdk",
-  "version": "0.1.0",
+  "name": "ledgergate-sdk",
+  "version": "1.0.0",
   "description": "x402 Observability SDK for HTTP APIs",
   "type": "module",
   "main": "./dist/index.cjs",

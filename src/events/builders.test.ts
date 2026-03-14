@@ -63,7 +63,7 @@ describe("Event Builders", () => {
       expect(event.request.id).toBe(baseContext.id);
       expect(event.request.method).toBe("GET");
       expect(event.request.path).toBe("/api/test");
-      expect(event.sdk.name).toBe("tollgate-sdk");
+      expect(event.sdk.name).toBe("ledgergate-sdk");
     });
 
     it("should generate unique eventId", () => {
@@ -293,7 +293,7 @@ describe("Event Builders", () => {
       ];
 
       for (const event of events) {
-        expect(event.sdk.name).toBe("tollgate-sdk");
+        expect(event.sdk.name).toBe("ledgergate-sdk");
         expect(event.sdk.version).toBeDefined();
       }
     });

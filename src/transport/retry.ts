@@ -65,7 +65,7 @@ export async function withRetry<T>(
 
   // All retries exhausted - fail open
   console.warn(
-    "[tollgate-sdk] All retry attempts exhausted. Last error:",
+    "[ledgergate-sdk] All retry attempts exhausted. Last error:",
     lastError
   );
   return undefined;

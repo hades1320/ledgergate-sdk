@@ -4,7 +4,7 @@ import type { SdkConfig } from "../core/config.js";
 import type { AnalyticsEvent } from "../events/schema.js";
 import { EventType } from "../events/types.js";
 import type { EventQueue } from "../transport/types.js";
-import { fastifyTollgate } from "./fastify.js";
+import { fastifyLedgergate } from "./fastify.js";
 import type { SdkInstance } from "./types.js";
 
 function createTestSetup(overrides: Partial<SdkConfig> = {}) {
@@ -34,6 +34,17 @@ function createTestSetup(overrides: Partial<SdkConfig> = {}) {
     },
     sampleRate: 1,
     debug: false,
+    x402: {
+      source: "header",
+      fieldMapping: {
+        address: "x-payment-address",
+        amount: "x-payment-amount",
+        network: "x-payment-network",
+        token: "x-payment-token",
+        status: "x-payment-status",
+      },
+    },
+    excludePaths: [],
     ...overrides,
   };
 
@@ -46,13 +57,13 @@ function createTestSetup(overrides: Partial<SdkConfig> = {}) {
   return { enqueuedEvents, mockQueue, mockSdk };
 }
 
-describe("fastifyTollgate", () => {
+describe("fastifyLedgergate", () => {
   describe("plugin registration", () => {
     it("should register without error", async () => {
       const { mockSdk } = createTestSetup();
       const app = Fastify({ logger: false });
 
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
       await expect(app.ready()).resolves.not.toThrow();
       await app.close();
     });
@@ -60,7 +71,7 @@ describe("fastifyTollgate", () => {
     it("should decorate request with x402Context", async () => {
       const { mockSdk } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       let contextFound = false;
       app.get("/test", (request, reply) => {
@@ -78,7 +89,7 @@ describe("fastifyTollgate", () => {
     it("should emit request.received event", async () => {
       const { mockSdk, mockQueue, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/test", (_request, reply) => {
         reply.send({ ok: true });
@@ -96,7 +107,7 @@ describe("fastifyTollgate", () => {
     it("should create context with correct method", async () => {
       const { mockSdk, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.post("/test", (_request, reply) => {
         reply.send({ ok: true });
@@ -113,7 +124,7 @@ describe("fastifyTollgate", () => {
     it("should create context with correct path", async () => {
       const { mockSdk, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/api/users/123", (_request, reply) => {
         reply.send({ ok: true });
@@ -132,7 +143,7 @@ describe("fastifyTollgate", () => {
     it("should emit request.completed event", async () => {
       const { mockSdk, mockQueue, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/test", (_request, reply) => {
         reply.send({ ok: true });
@@ -150,7 +161,7 @@ describe("fastifyTollgate", () => {
     it("should capture status code in response event", async () => {
       const { mockSdk, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/test", (_request, reply) => {
         reply.code(201).send({ created: true });
@@ -167,7 +178,7 @@ describe("fastifyTollgate", () => {
     it("should capture error status codes", async () => {
       const { mockSdk, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/error", (_request, reply) => {
         reply.code(500).send({ error: "Internal Server Error" });
@@ -186,7 +197,7 @@ describe("fastifyTollgate", () => {
     it("should emit payment.required event for 402 responses", async () => {
       const { mockSdk, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/premium", (_request, reply) => {
         reply
@@ -212,7 +223,7 @@ describe("fastifyTollgate", () => {
     it("should emit payment.verified event for verified status", async () => {
       const { mockSdk, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/verified", (_request, reply) => {
         reply
@@ -234,7 +245,7 @@ describe("fastifyTollgate", () => {
     it("should emit payment.failed event for failed status", async () => {
       const { mockSdk, enqueuedEvents } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       // Use non-402 status since 402 takes precedence and emits PAYMENT_REQUIRED
       app.get("/failed", (_request, reply) => {
@@ -259,7 +270,7 @@ describe("fastifyTollgate", () => {
     it("should not emit events when sampleRate is 0", async () => {
       const { mockSdk, mockQueue } = createTestSetup({ sampleRate: 0 });
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/test", (_request, reply) => {
         reply.send({ ok: true });
@@ -280,7 +291,7 @@ describe("fastifyTollgate", () => {
       });
 
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       app.get("/test", (_request, reply) => {
         reply.send({ ok: true });
@@ -298,7 +309,7 @@ describe("fastifyTollgate", () => {
     it("should redact authorization header", async () => {
       const { mockSdk } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       let authHeaderValue = "";
       app.get("/test", (request, reply) => {
@@ -319,7 +330,7 @@ describe("fastifyTollgate", () => {
     it("should preserve non-sensitive headers", async () => {
       const { mockSdk } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       let contentTypeValue = "";
       app.get("/test", (request, reply) => {
@@ -342,7 +353,7 @@ describe("fastifyTollgate", () => {
     it("should attach sampled flag to context", async () => {
       const { mockSdk } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       let sampledValue = false;
       app.get("/test", (request, reply) => {
@@ -359,7 +370,7 @@ describe("fastifyTollgate", () => {
     it("should generate unique request IDs", async () => {
       const { mockSdk } = createTestSetup();
       const app = Fastify({ logger: false });
-      await app.register(fastifyTollgate, { sdk: mockSdk });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
 
       const ids: string[] = [];
       app.get("/test", (request, reply) => {
@@ -374,6 +385,59 @@ describe("fastifyTollgate", () => {
       await app.inject({ method: "GET", url: "/test" });
 
       expect(new Set(ids).size).toBe(3);
+      await app.close();
+    });
+  });
+
+  describe("path exclusion", () => {
+    it("should skip excluded exact paths", async () => {
+      const { mockSdk, mockQueue } = createTestSetup({
+        excludePaths: ["/favicon.ico"],
+      });
+      const app = Fastify({ logger: false });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
+
+      app.get("/favicon.ico", (_request, reply) => {
+        reply.send({ ok: true });
+      });
+
+      await app.inject({ method: "GET", url: "/favicon.ico" });
+
+      expect(mockQueue.enqueue).not.toHaveBeenCalled();
+      await app.close();
+    });
+
+    it("should skip paths matching wildcard pattern", async () => {
+      const { mockSdk, mockQueue } = createTestSetup({
+        excludePaths: ["/health/*"],
+      });
+      const app = Fastify({ logger: false });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
+
+      app.get("/health/live", (_request, reply) => {
+        reply.send({ ok: true });
+      });
+
+      await app.inject({ method: "GET", url: "/health/live" });
+
+      expect(mockQueue.enqueue).not.toHaveBeenCalled();
+      await app.close();
+    });
+
+    it("should still track non-excluded paths when excludePaths is set", async () => {
+      const { mockSdk, mockQueue } = createTestSetup({
+        excludePaths: ["/favicon.ico"],
+      });
+      const app = Fastify({ logger: false });
+      await app.register(fastifyLedgergate, { sdk: mockSdk });
+
+      app.get("/api/data", (_request, reply) => {
+        reply.send({ ok: true });
+      });
+
+      await app.inject({ method: "GET", url: "/api/data" });
+
+      expect(mockQueue.enqueue).toHaveBeenCalled();
       await app.close();
     });
   });

@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
  * Default salt for IP hashing when none is provided
  * In production, a unique salt should be configured per deployment
  */
-const DEFAULT_SALT = "tollgate-sdk-default-salt";
+const DEFAULT_SALT = "ledgergate-sdk-default-salt";
 
 /**
  * Number of characters to use from the hash output

@@ -5,6 +5,7 @@ import fp from "fastify-plugin";
 
 import type { RequestContext } from "../core/context.js";
 import { captureResponseData, createRequestContext } from "../core/context.js";
+import { isExcludedPath } from "../core/paths.js";
 import { shouldSample } from "../core/sampling.js";
 import {
   buildPaymentFailedEvent,
@@ -24,7 +25,7 @@ declare module "fastify" {
   }
 }
 
-export interface FastifyTollgateOptions {
+export interface FastifyLedgergateOptions {
   sdk: SdkInstance;
 }
 
@@ -43,16 +44,16 @@ export interface FastifyTollgateOptions {
  * @example
  * ```typescript
  * import Fastify from "fastify";
- * import { createTollgateSdk, fastifyTollgate } from "tollgate-sdk";
+ * import { createLedgergateSdk, fastifyLedgergate } from "ledgergate-sdk";
  *
- * const sdk = createTollgateSdk({ apiKey: "your-api-key" });
+ * const sdk = createLedgergateSdk({ apiKey: "your-api-key" });
  * const app = Fastify();
  *
- * await app.register(fastifyTollgate, { sdk });
+ * await app.register(fastifyLedgergate, { sdk });
  * ```
  */
-const fastifyTollgatePlugin: FastifyPluginAsync<
-  FastifyTollgateOptions
+const fastifyLedgergatePlugin: FastifyPluginAsync<
+  FastifyLedgergateOptions
 > = async (fastify, options) => {
   const { sdk } = options;
 
@@ -62,6 +63,11 @@ const fastifyTollgatePlugin: FastifyPluginAsync<
   // Hook: onRequest
   fastify.addHook("onRequest", async (request, _reply) => {
     try {
+      // 0. Check if path is excluded
+      if (isExcludedPath(request.url, sdk.config.excludePaths)) {
+        return;
+      }
+
       // 1. Sampling check
       const sampled = shouldSample(sdk.config.sampleRate);
 
@@ -88,7 +94,7 @@ const fastifyTollgatePlugin: FastifyPluginAsync<
       }
     } catch (error) {
       if (sdk.config.debug) {
-        console.error("[tollgate-sdk] Error in onRequest hook:", error);
+        console.error("[ledgergate-sdk] Error in onRequest hook:", error);
       }
     }
   });
@@ -160,14 +166,14 @@ const fastifyTollgatePlugin: FastifyPluginAsync<
       }
     } catch (error) {
       if (sdk.config.debug) {
-        console.error("[tollgate-sdk] Error in onResponse hook:", error);
+        console.error("[ledgergate-sdk] Error in onResponse hook:", error);
       }
     }
   });
 };
 
 // Wrap with fastify-plugin to break encapsulation and make hooks apply globally
-export const fastifyTollgate = fp(fastifyTollgatePlugin, {
+export const fastifyLedgergate = fp(fastifyLedgergatePlugin, {
   fastify: "5.x",
-  name: "tollgate-sdk",
+  name: "ledgergate-sdk",
 });

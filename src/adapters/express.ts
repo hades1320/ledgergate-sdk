@@ -5,6 +5,7 @@ import {
   type RequestContext,
   type ResponseData,
 } from "../core/context.js";
+import { isExcludedPath } from "../core/paths.js";
 import { shouldSample } from "../core/sampling.js";
 import {
   buildPaymentFailedEvent,
@@ -101,7 +102,10 @@ function handleResponseFinish(
     }
   } catch (error) {
     if (sdk.config.debug) {
-      console.error("[tollgate-sdk] Error in response finish handler:", error);
+      console.error(
+        "[ledgergate-sdk] Error in response finish handler:",
+        error
+      );
     }
   }
 }
@@ -117,15 +121,15 @@ function handleResponseFinish(
  * All SDK logic is wrapped in `try-catch` to ensure fail-open behavior —
  * the middleware will never throw or break your application.
  *
- * @param sdk - The initialized SDK instance from `createTollgateSdk()`
+ * @param sdk - The initialized SDK instance from `createLedgergateSdk()`
  * @returns Express `RequestHandler` middleware
  *
  * @example
  * ```typescript
  * import express from "express";
- * import { createTollgateSdk, createExpressMiddleware } from "tollgate-sdk";
+ * import { createLedgergateSdk, createExpressMiddleware } from "ledgergate-sdk";
  *
- * const sdk = createTollgateSdk({ apiKey: "your-api-key" });
+ * const sdk = createLedgergateSdk({ apiKey: "your-api-key" });
  * const app = express();
  *
  * app.use(createExpressMiddleware(sdk));
@@ -135,6 +139,12 @@ export function createExpressMiddleware(sdk: SdkInstance): RequestHandler {
   return (req: Request, res: Response, next: NextFunction) => {
     // Fail-open: Wrap everything in try-catch to prevent SDK errors from breaking the app
     try {
+      // 0. Check if path is excluded
+      if (isExcludedPath(req.path, sdk.config.excludePaths)) {
+        next();
+        return;
+      }
+
       // 1. Sampling check
       const sampled = shouldSample(sdk.config.sampleRate);
 
@@ -165,7 +175,7 @@ export function createExpressMiddleware(sdk: SdkInstance): RequestHandler {
       });
     } catch (error) {
       if (sdk.config.debug) {
-        console.error("[tollgate-sdk] Error in middleware:", error);
+        console.error("[ledgergate-sdk] Error in middleware:", error);
       }
     }
 

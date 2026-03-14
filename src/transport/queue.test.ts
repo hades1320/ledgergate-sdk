@@ -35,8 +35,8 @@ describe("createEventQueue", () => {
       path: `/api/test/${id}`,
     },
     sdk: {
-      name: "tollgate-sdk",
-      version: "0.1.0",
+      name: "ledgergate-sdk",
+      version: "1.0.0",
     },
   });
 

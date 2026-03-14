@@ -83,6 +83,17 @@ describe("createExpressMiddleware", () => {
       },
       sampleRate: 1,
       debug: false,
+      x402: {
+        source: "header",
+        fieldMapping: {
+          address: "x-payment-address",
+          amount: "x-payment-amount",
+          network: "x-payment-network",
+          token: "x-payment-token",
+          status: "x-payment-status",
+        },
+      },
+      excludePaths: [],
     };
 
     mockSdk = {
@@ -473,6 +484,67 @@ describe("createExpressMiddleware", () => {
       const context = res.locals.x402Context as { clientIpHash?: string };
       expect(context.clientIpHash).toBeDefined();
       expect(context.clientIpHash).not.toBe("192.168.1.1");
+    });
+  });
+
+  describe("path exclusion", () => {
+    it("should not track excluded exact paths", () => {
+      const excludeSdk: SdkInstance = {
+        ...mockSdk,
+        config: { ...mockSdk.config, excludePaths: ["/favicon.ico"] },
+      };
+      const middleware = createExpressMiddleware(excludeSdk);
+      const req = createMockRequest({ path: "/favicon.ico" });
+      const res = createMockResponse();
+      const next = vi.fn();
+
+      middleware(
+        req as unknown as Parameters<typeof middleware>[0],
+        res as unknown as Parameters<typeof middleware>[1],
+        next
+      );
+
+      expect(mockQueue.enqueue).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it("should not track paths matching wildcard pattern", () => {
+      const excludeSdk: SdkInstance = {
+        ...mockSdk,
+        config: { ...mockSdk.config, excludePaths: ["/static/*"] },
+      };
+      const middleware = createExpressMiddleware(excludeSdk);
+      const req = createMockRequest({ path: "/static/logo.png" });
+      const res = createMockResponse();
+      const next = vi.fn();
+
+      middleware(
+        req as unknown as Parameters<typeof middleware>[0],
+        res as unknown as Parameters<typeof middleware>[1],
+        next
+      );
+
+      expect(mockQueue.enqueue).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it("should still track non-excluded paths when excludePaths is set", () => {
+      const excludeSdk: SdkInstance = {
+        ...mockSdk,
+        config: { ...mockSdk.config, excludePaths: ["/favicon.ico"] },
+      };
+      const middleware = createExpressMiddleware(excludeSdk);
+      const req = createMockRequest({ path: "/api/test" });
+      const res = createMockResponse();
+      const next = vi.fn();
+
+      middleware(
+        req as unknown as Parameters<typeof middleware>[0],
+        res as unknown as Parameters<typeof middleware>[1],
+        next
+      );
+
+      expect(mockQueue.enqueue).toHaveBeenCalledTimes(1);
     });
   });
 });

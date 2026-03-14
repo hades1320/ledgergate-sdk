@@ -4,7 +4,7 @@ import type { EventQueue } from "../transport/types.js";
 import { parseConfig, type SdkConfig, type SdkConfigInput } from "./config.js";
 
 /**
- * Creates a new Tollgate SDK instance.
+ * Creates a new Ledgergate SDK instance.
  *
  * This is the main entry point for the SDK. It validates the provided
  * configuration, applies defaults, and initializes the event queue.
@@ -15,10 +15,10 @@ import { parseConfig, type SdkConfig, type SdkConfigInput } from "./config.js";
  *
  * @example
  * ```typescript
- * import { createTollgateSdk, createExpressMiddleware } from "tollgate-sdk";
+ * import { createLedgergateSdk, createExpressMiddleware } from "ledgergate-sdk";
  *
- * const sdk = createTollgateSdk({
- *   apiKey: process.env.TOLLGATE_API_KEY!,
+ * const sdk = createLedgergateSdk({
+ *   apiKey: process.env.LEDGERGATE_API_KEY!,
  *   debug: process.env.NODE_ENV !== "production",
  * });
  *
@@ -31,7 +31,7 @@ import { parseConfig, type SdkConfig, type SdkConfigInput } from "./config.js";
  * });
  * ```
  */
-export function createTollgateSdk(config: SdkConfigInput): SdkInstance {
+export function createLedgergateSdk(config: SdkConfigInput): SdkInstance {
   const validated: SdkConfig = parseConfig(config);
   const queue: EventQueue = createEventQueue({
     transport: validated.transport,

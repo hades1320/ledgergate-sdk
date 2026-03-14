@@ -134,7 +134,7 @@ describe("parseConfig", () => {
   it("should apply default endpoint", () => {
     const input: SdkConfigInput = { apiKey: "test-key" };
     const config = parseConfig(input);
-    expect(config.endpoint).toBe("https://api.tollgate.io/v1/events");
+    expect(config.endpoint).toBe("https://api.ledgergate.io/v1/events");
   });
 
   it("should apply default sampleRate", () => {
@@ -208,6 +208,21 @@ describe("parseConfig", () => {
     const config = parseConfig(input);
     expect(config.redaction.ipHashSalt).toBe("my-custom-salt");
   });
+
+  it("should default excludePaths to empty array", () => {
+    const input: SdkConfigInput = { apiKey: "test-key" };
+    const config = parseConfig(input);
+    expect(config.excludePaths).toEqual([]);
+  });
+
+  it("should preserve provided excludePaths", () => {
+    const input: SdkConfigInput = {
+      apiKey: "test-key",
+      excludePaths: ["/favicon.ico", "/health/*"],
+    };
+    const config = parseConfig(input);
+    expect(config.excludePaths).toEqual(["/favicon.ico", "/health/*"]);
+  });
 });
 
 describe("safeParseConfig", () => {
@@ -234,7 +249,7 @@ describe("safeParseConfig", () => {
     const result = safeParseConfig(input);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.endpoint).toBe("https://api.tollgate.io/v1/events");
+      expect(result.data.endpoint).toBe("https://api.ledgergate.io/v1/events");
       expect(result.data.sampleRate).toBe(1);
       expect(result.data.debug).toBe(false);
     }

@@ -42,7 +42,7 @@ export function createEventQueue(config: QueueConfig): EventQueue {
 
     if (config.debug) {
       console.log(
-        `[tollgate-sdk] Flushing ${eventsToSend.length} events to ${config.endpoint}`
+        `[ledgergate-sdk] Flushing ${eventsToSend.length} events to ${config.endpoint}`
       );
     }
 
@@ -57,16 +57,18 @@ export function createEventQueue(config: QueueConfig): EventQueue {
       if (config.debug) {
         if (result.success) {
           console.log(
-            `[tollgate-sdk] Successfully sent ${eventsToSend.length} events`
+            `[ledgergate-sdk] Successfully sent ${eventsToSend.length} events`
           );
         } else {
-          console.warn(`[tollgate-sdk] Failed to send events: ${result.error}`);
+          console.warn(
+            `[ledgergate-sdk] Failed to send events: ${result.error}`
+          );
         }
       }
     } catch (error) {
       // Fail-open: log error but don't throw
       if (config.debug) {
-        console.error("[tollgate-sdk] Error flushing events:", error);
+        console.error("[ledgergate-sdk] Error flushing events:", error);
       }
     }
   }
@@ -98,7 +100,9 @@ export function createEventQueue(config: QueueConfig): EventQueue {
       // Don't accept new events during shutdown
       if (isShuttingDown) {
         if (config.debug) {
-          console.warn("[tollgate-sdk] Queue is shutting down, event dropped");
+          console.warn(
+            "[ledgergate-sdk] Queue is shutting down, event dropped"
+          );
         }
         return;
       }
@@ -108,7 +112,7 @@ export function createEventQueue(config: QueueConfig): EventQueue {
 
       if (config.debug) {
         console.log(
-          `[tollgate-sdk] Event enqueued (${buffer.length}/${config.transport.batchSize})`
+          `[ledgergate-sdk] Event enqueued (${buffer.length}/${config.transport.batchSize})`
         );
       }
 
@@ -139,7 +143,7 @@ export function createEventQueue(config: QueueConfig): EventQueue {
       isShuttingDown = true;
 
       if (config.debug) {
-        console.log("[tollgate-sdk] Shutting down queue...");
+        console.log("[ledgergate-sdk] Shutting down queue...");
       }
 
       // Clear any pending timer
@@ -157,7 +161,7 @@ export function createEventQueue(config: QueueConfig): EventQueue {
       await flushBuffer();
 
       if (config.debug) {
-        console.log("[tollgate-sdk] Queue shutdown complete");
+        console.log("[ledgergate-sdk] Queue shutdown complete");
       }
     },
 

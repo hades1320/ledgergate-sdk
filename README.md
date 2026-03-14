@@ -1,17 +1,17 @@
-# tollgate-sdk
+# ledgergate-sdk
 
 > Lightweight, non-custodial observability for x402-monetized HTTP APIs.
 
-[![npm version](https://img.shields.io/npm/v/tollgate-sdk)](https://www.npmjs.com/package/tollgate-sdk)
+[![npm version](https://img.shields.io/npm/v/ledgergate-sdk)](https://www.npmjs.com/package/ledgergate-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
 
 ---
 
-## What is tollgate-sdk?
+## What is ledgergate-sdk?
 
-**tollgate-sdk** is a passive observability SDK that sits in your HTTP middleware layer and automatically detects, tracks, and reports [x402 Payment Required](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/402) interactions — without ever touching funds or private keys.
+**ledgergate-sdk** is a passive observability SDK that sits in your HTTP middleware layer and automatically detects, tracks, and reports [x402 Payment Required](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/402) interactions — without ever touching funds or private keys.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -38,7 +38,7 @@
 ## Installation
 
 ```bash
-npm install tollgate-sdk
+npm install ledgergate-sdk
 ```
 
 > **Peer dependencies**: `express` and `fastify` are optional. Install whichever framework you use.
@@ -51,10 +51,10 @@ npm install tollgate-sdk
 
 ```typescript
 import express from "express";
-import { createTollgateSdk, createExpressMiddleware } from "tollgate-sdk";
+import { createLedgergateSdk, createExpressMiddleware } from "ledgergate-sdk";
 
-const sdk = createTollgateSdk({
-  apiKey: process.env.TOLLGATE_API_KEY!,
+const sdk = createLedgergateSdk({
+  apiKey: process.env.LEDGERGATE_API_KEY!,
   debug: process.env.NODE_ENV !== "production",
 });
 
@@ -80,15 +80,15 @@ process.on("SIGTERM", async () => {
 
 ```typescript
 import Fastify from "fastify";
-import { createTollgateSdk, fastifyTollgate } from "tollgate-sdk";
+import { createLedgergateSdk, fastifyLedgergate } from "ledgergate-sdk";
 
-const sdk = createTollgateSdk({
-  apiKey: process.env.TOLLGATE_API_KEY!,
+const sdk = createLedgergateSdk({
+  apiKey: process.env.LEDGERGATE_API_KEY!,
   debug: process.env.NODE_ENV !== "production",
 });
 
 const app = Fastify();
-await app.register(fastifyTollgate, { sdk });
+await app.register(fastifyLedgergate, { sdk });
 
 app.get("/", async () => {
   return { message: "Hello, x402!" };
@@ -108,15 +108,15 @@ process.on("SIGTERM", async () => {
 
 ## Configuration
 
-Pass a configuration object to `createTollgateSdk()`. Only `apiKey` is required — everything else has sensible defaults.
+Pass a configuration object to `createLedgergateSdk()`. Only `apiKey` is required — everything else has sensible defaults.
 
 ```typescript
-const sdk = createTollgateSdk({
+const sdk = createLedgergateSdk({
   // Required
   apiKey: "your-api-key",
 
   // Optional — all fields below have defaults
-  endpoint: "https://api.tollgate.io/v1/events",
+  endpoint: "https://api.ledgergate.io/v1/events",
   sampleRate: 1, // 0-1, where 1 = 100%
   debug: false,
 
@@ -152,7 +152,7 @@ const sdk = createTollgateSdk({
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `apiKey` | `string` | — | **Required.** API key for the analytics endpoint. |
-| `endpoint` | `string` | `https://api.tollgate.io/v1/events` | Analytics endpoint URL. |
+| `endpoint` | `string` | `https://api.ledgergate.io/v1/events` | Analytics endpoint URL. |
 | `sampleRate` | `number` | `1` | Sampling rate between `0` (0%) and `1` (100%). |
 | `debug` | `boolean` | `false` | Enables console logging for SDK errors. |
 | `redaction.hashIp` | `boolean` | `true` | Hash client IP addresses using SHA-256. |
@@ -194,7 +194,7 @@ Use `redaction.allowedHeaders` to selectively permit specific headers through.
 Client IPs are hashed using SHA-256 with a configurable salt, then truncated to 16 characters. This allows correlation without storing raw addresses.
 
 ```typescript
-const sdk = createTollgateSdk({
+const sdk = createLedgergateSdk({
   apiKey: "your-api-key",
   redaction: {
     hashIp: true, // default
@@ -250,7 +250,7 @@ interface AnalyticsEvent {
   };
 
   sdk: {
-    name: "tollgate-sdk";
+    name: "ledgergate-sdk";
     version: string;
   };
 }
@@ -275,7 +275,7 @@ You can customize **where** the SDK looks for payment metadata and **which keys*
 Choose where to read payment information:
 
 ```typescript
-const sdk = createTollgateSdk({
+const sdk = createLedgergateSdk({
   apiKey: "your-api-key",
   x402: {
     source: "header", // Default: read from response headers only
@@ -328,7 +328,7 @@ app.get("/resource", async (request, reply) => {
 Different APIs use different key names. Customize the field mapping to match your API:
 
 ```typescript
-const sdk = createTollgateSdk({
+const sdk = createLedgergateSdk({
   apiKey: "your-api-key",
   x402: {
     source: "header", // or "body" or "both"
@@ -350,7 +350,7 @@ Now the SDK will look for `pay-to`, `pay-amount`, etc. instead of the default `x
 You can also use the detection utilities directly:
 
 ```typescript
-import { detectX402, isPaymentRequired, parsePaymentHeaders, parsePaymentBody } from "tollgate-sdk";
+import { detectX402, isPaymentRequired, parsePaymentHeaders, parsePaymentBody } from "ledgergate-sdk";
 
 // Detect from headers (default behavior)
 const metadata = detectX402(statusCode, responseHeaders);
@@ -414,7 +414,7 @@ app.get("/api/resource", async (request) => {
 Control what percentage of requests are tracked:
 
 ```typescript
-const sdk = createTollgateSdk({
+const sdk = createLedgergateSdk({
   apiKey: "your-api-key",
   sampleRate: 0.1, // Track only 10% of requests
 });
@@ -444,7 +444,7 @@ process.on("SIGINT", async () => {
 
 | Export | Type | Description |
 |--------|------|-------------|
-| `createTollgateSdk(config)` | Function | Creates and returns an `SdkInstance`. |
+| `createLedgergateSdk(config)` | Function | Creates and returns an `SdkInstance`. |
 | `SdkConfigSchema` | Zod Schema | Validation schema for SDK configuration. |
 | `parseConfig(input)` | Function | Validates and applies defaults to config (throws on error). |
 | `safeParseConfig(input)` | Function | Validates config without throwing (returns result object). |
@@ -454,7 +454,7 @@ process.on("SIGINT", async () => {
 | Export | Type | Description |
 |--------|------|-------------|
 | `createExpressMiddleware(sdk)` | Function | Creates Express middleware from an `SdkInstance`. |
-| `fastifyTollgate` | Fastify Plugin | Fastify plugin — register with `app.register(fastifyTollgate, { sdk })`. |
+| `fastifyLedgergate` | Fastify Plugin | Fastify plugin — register with `app.register(fastifyLedgergate, { sdk })`. |
 
 ### Events
 
@@ -497,7 +497,7 @@ process.on("SIGINT", async () => {
 |--------|------|-------------|
 | `SdkConfig` | Interface | Resolved SDK configuration (after defaults). |
 | `SdkConfigInput` | Type | Raw SDK configuration input (before defaults). |
-| `SdkInstance` | Interface | SDK instance returned by `createTollgateSdk`. |
+| `SdkInstance` | Interface | SDK instance returned by `createLedgergateSdk`. |
 | `AnalyticsEvent` | Type | Validated analytics event shape. |
 | `X402Metadata` | Interface | x402 payment metadata. |
 | `RequestContext` | Interface | Immutable per-request context. |
@@ -506,7 +506,7 @@ process.on("SIGINT", async () => {
 | `RedactionConfig` | Interface | Resolved redaction configuration. |
 | `TransportConfig` | Interface | Resolved transport configuration. |
 | `PaymentStatus` | Type | Payment status union (`"required" | "verified" | "failed"`). |
-| `FastifyTollgateOptions` | Interface | Options for the Fastify plugin. |
+| `FastifyLedgergateOptions` | Interface | Options for the Fastify plugin. |
 
 ---
 
