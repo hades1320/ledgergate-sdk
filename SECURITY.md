@@ -5,7 +5,7 @@
 If you discover a security vulnerability, **please do not open a public
 issue**.
 
-Instead, report it privately by emailing: **security@yourprojectdomain.com**
+Instead, report it privately by emailing: **ledgergate01@gmail.com**
 
 Please include: - A clear description of the issue - Steps to reproduce
 (if applicable) - Potential impact

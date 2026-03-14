@@ -119,6 +119,7 @@ const sdk = createLedgergateSdk({
   endpoint: "https://api.ledgergate.io/v1/events",
   sampleRate: 1, // 0-1, where 1 = 100%
   debug: false,
+  excludePaths: ["/health", "/metrics", "/static/*"], // Optional wildcard support
 
   redaction: {
     hashIp: true, // Hash client IPs with SHA-256
@@ -155,6 +156,7 @@ const sdk = createLedgergateSdk({
 | `endpoint` | `string` | `https://api.ledgergate.io/v1/events` | Analytics endpoint URL. |
 | `sampleRate` | `number` | `1` | Sampling rate between `0` (0%) and `1` (100%). |
 | `debug` | `boolean` | `false` | Enables console logging for SDK errors. |
+| `excludePaths` | `string[]` | `[]` | Array of path patterns to ignore (supports `*` wildcards). |
 | `redaction.hashIp` | `boolean` | `true` | Hash client IP addresses using SHA-256. |
 | `redaction.allowedHeaders` | `string[]` | `[]` | Header names to allow through without redaction. |
 | `redaction.ipHashSalt` | `string` | Internal default | Custom salt for IP hashing. |

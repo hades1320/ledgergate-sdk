@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Brand migration** — Renamed all project identifiers and documentation from **Tollgate** to **Ledgergate**.
 - **SDK Renaming** — Major rebranding of package to `ledgergate-sdk`. All internal exports and constants now use the Ledgergate prefix.
-- **Updated Default Endpoint** — The default reporting endpoint is now `https://api.ledgergate.com/v1/events`.
+- **Updated Default Endpoint** — The default reporting endpoint is now `https://api.ledgergate.io/v1/events`.
 
 ### Added
 
