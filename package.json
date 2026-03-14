@@ -1,5 +1,5 @@
 {
-  "name": "ledgergate-sdk",
+  "name": "@ledgergate/ledgergate-sdk",
   "version": "1.0.0",
   "description": "x402 Observability SDK for HTTP APIs",
   "type": "module",
