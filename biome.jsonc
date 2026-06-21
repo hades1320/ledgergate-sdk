@@ -11,6 +11,10 @@
     "ignoreUnknown": true,
     "includes": ["src/**/*"]
   },
+  "formatter": {
+    "indentStyle": "tab",
+    "indentWidth": 2
+  },
   "linter": {
     "rules": {
       "complexity": {
