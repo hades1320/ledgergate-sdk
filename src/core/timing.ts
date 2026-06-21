@@ -2,8 +2,8 @@
  * High-resolution timer for measuring request latency
  */
 export interface Timer {
-  /** Returns elapsed time in milliseconds since timer creation */
-  elapsed(): number;
+	/** Returns elapsed time in milliseconds since timer creation */
+	elapsed(): number;
 }
 
 /**
@@ -12,13 +12,13 @@ export interface Timer {
  * @returns Timer instance
  */
 export function createTimer(): Timer {
-  const startTime = performance.now();
+	const startTime = performance.now();
 
-  return {
-    elapsed(): number {
-      return performance.now() - startTime;
-    },
-  };
+	return {
+		elapsed(): number {
+			return performance.now() - startTime;
+		},
+	};
 }
 
 /**
@@ -26,5 +26,5 @@ export function createTimer(): Timer {
  * @returns ISO 8601 timestamp string
  */
 export function getTimestamp(): string {
-  return new Date().toISOString();
+	return new Date().toISOString();
 }

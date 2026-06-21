@@ -17,43 +17,43 @@ const HTTP_402_PAYMENT_REQUIRED = 402;
  * @returns X402Metadata if detected, otherwise undefined
  */
 export function detectX402(
-  statusCode: number,
-  headers: Record<string, string | string[] | undefined>,
-  config?: X402DetectionConfig,
-  body?: Record<string, unknown>
+	statusCode: number,
+	headers: Record<string, string | string[] | undefined>,
+	config?: X402DetectionConfig,
+	body?: Record<string, unknown>
 ): X402Metadata | undefined {
-  const isPaymentRequired = statusCode === HTTP_402_PAYMENT_REQUIRED;
+	const isPaymentRequired = statusCode === HTTP_402_PAYMENT_REQUIRED;
 
-  // Determine the source to use (default: "header")
-  const source = config?.source ?? "header";
-  const fieldMapping = config?.fieldMapping;
+	// Determine the source to use (default: "header")
+	const source = config?.source ?? "header";
+	const fieldMapping = config?.fieldMapping;
 
-  let paymentMetadata: Partial<X402Metadata> = {};
+	let paymentMetadata: Partial<X402Metadata> = {};
 
-  // Parse metadata based on configured source
-  if (source === "header") {
-    paymentMetadata = parsePaymentHeaders(headers, fieldMapping);
-  } else if (source === "body" && body) {
-    paymentMetadata = parsePaymentBody(body, fieldMapping);
-  } else if (source === "both") {
-    // Parse both, headers take precedence
-    const bodyMetadata = body ? parsePaymentBody(body, fieldMapping) : {};
-    const headerMetadata = parsePaymentHeaders(headers, fieldMapping);
-    paymentMetadata = {
-      ...bodyMetadata,
-      ...headerMetadata, // Headers override body
-    };
-  }
+	// Parse metadata based on configured source
+	if (source === "header") {
+		paymentMetadata = parsePaymentHeaders(headers, fieldMapping);
+	} else if (source === "body" && body) {
+		paymentMetadata = parsePaymentBody(body, fieldMapping);
+	} else if (source === "both") {
+		// Parse both, headers take precedence
+		const bodyMetadata = body ? parsePaymentBody(body, fieldMapping) : {};
+		const headerMetadata = parsePaymentHeaders(headers, fieldMapping);
+		paymentMetadata = {
+			...bodyMetadata,
+			...headerMetadata, // Headers override body
+		};
+	}
 
-  // If it's a 402 or if we found any explicit payment headers/body data, return metadata
-  if (isPaymentRequired || Object.keys(paymentMetadata).length > 0) {
-    return {
-      isPaymentRequired,
-      ...paymentMetadata,
-    };
-  }
+	// If it's a 402 or if we found any explicit payment headers/body data, return metadata
+	if (isPaymentRequired || Object.keys(paymentMetadata).length > 0) {
+		return {
+			isPaymentRequired,
+			...paymentMetadata,
+		};
+	}
 
-  return undefined;
+	return undefined;
 }
 
 /**
@@ -62,5 +62,5 @@ export function detectX402(
  * @returns true if status is 402
  */
 export function isPaymentRequired(statusCode: number): boolean {
-  return statusCode === HTTP_402_PAYMENT_REQUIRED;
+	return statusCode === HTTP_402_PAYMENT_REQUIRED;
 }

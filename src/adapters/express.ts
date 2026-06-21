@@ -1,18 +1,18 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import {
-  captureResponseData,
-  createRequestContext,
-  type RequestContext,
-  type ResponseData,
+	captureResponseData,
+	createRequestContext,
+	type RequestContext,
+	type ResponseData,
 } from "../core/context.js";
 import { isExcludedPath } from "../core/paths.js";
 import { shouldSample } from "../core/sampling.js";
 import {
-  buildPaymentFailedEvent,
-  buildPaymentRequiredEvent,
-  buildPaymentVerifiedEvent,
-  buildRequestCompletedEvent,
-  buildRequestReceivedEvent,
+	buildPaymentFailedEvent,
+	buildPaymentRequiredEvent,
+	buildPaymentVerifiedEvent,
+	buildRequestCompletedEvent,
+	buildRequestReceivedEvent,
 } from "../events/builders.js";
 import { detectX402 } from "../x402/detector.js";
 import type { X402Metadata } from "../x402/types.js";
@@ -22,92 +22,92 @@ import type { SdkInstance } from "./types.js";
  * Handles x402-specific event emission logic
  */
 function handleX402Event(
-  context: RequestContext,
-  x402Metadata: X402Metadata,
-  responseData: ResponseData,
-  sdk: SdkInstance
+	context: RequestContext,
+	x402Metadata: X402Metadata,
+	responseData: ResponseData,
+	sdk: SdkInstance
 ) {
-  if (x402Metadata.isPaymentRequired) {
-    const event = buildPaymentRequiredEvent(
-      context,
-      x402Metadata,
-      responseData
-    );
-    sdk.queue.enqueue(event);
-  } else if (x402Metadata.paymentStatus === "verified") {
-    const event = buildPaymentVerifiedEvent(
-      context,
-      x402Metadata,
-      responseData
-    );
-    sdk.queue.enqueue(event);
-  } else if (x402Metadata.paymentStatus === "failed") {
-    const event = buildPaymentFailedEvent(context, x402Metadata, responseData);
-    sdk.queue.enqueue(event);
-  } else {
-    // Default to completed if no specific status but x402 metadata present (e.g. informative)
-    const event = buildRequestCompletedEvent(
-      context,
-      responseData,
-      x402Metadata
-    );
-    sdk.queue.enqueue(event);
-  }
+	if (x402Metadata.isPaymentRequired) {
+		const event = buildPaymentRequiredEvent(
+			context,
+			x402Metadata,
+			responseData
+		);
+		sdk.queue.enqueue(event);
+	} else if (x402Metadata.paymentStatus === "verified") {
+		const event = buildPaymentVerifiedEvent(
+			context,
+			x402Metadata,
+			responseData
+		);
+		sdk.queue.enqueue(event);
+	} else if (x402Metadata.paymentStatus === "failed") {
+		const event = buildPaymentFailedEvent(context, x402Metadata, responseData);
+		sdk.queue.enqueue(event);
+	} else {
+		// Default to completed if no specific status but x402 metadata present (e.g. informative)
+		const event = buildRequestCompletedEvent(
+			context,
+			responseData,
+			x402Metadata
+		);
+		sdk.queue.enqueue(event);
+	}
 }
 
 /**
  * Handles logic when the response finishes
  */
 function handleResponseFinish(
-  res: Response,
-  context: RequestContext,
-  sdk: SdkInstance,
-  sampled: boolean
+	res: Response,
+	context: RequestContext,
+	sdk: SdkInstance,
+	sampled: boolean
 ) {
-  try {
-    if (!sampled) {
-      return;
-    }
+	try {
+		if (!sampled) {
+			return;
+		}
 
-    // Capture response data (status, latency)
-    const responseData = captureResponseData(context, res.statusCode);
+		// Capture response data (status, latency)
+		const responseData = captureResponseData(context, res.statusCode);
 
-    // Detect x402 metadata
-    // getHeaders() returns a plain object in recent Node/Express versions
-    const headers = res.getHeaders() as Record<
-      string,
-      string | string[] | undefined
-    >;
+		// Detect x402 metadata
+		// getHeaders() returns a plain object in recent Node/Express versions
+		const headers = res.getHeaders() as Record<
+			string,
+			string | string[] | undefined
+		>;
 
-    // Get optional response body from res.locals if provided
-    // biome-ignore lint/complexity/useLiteralKeys: TS requires bracket notation for index signatures
-    const responseBody = res.locals["x402Body"] as
-      | Record<string, unknown>
-      | undefined;
+		// Get optional response body from res.locals if provided
+		// biome-ignore lint/complexity/useLiteralKeys: TS requires bracket notation for index signatures
+		const responseBody = res.locals["x402Body"] as
+			| Record<string, unknown>
+			| undefined;
 
-    const x402Metadata = detectX402(
-      res.statusCode,
-      headers,
-      sdk.config.x402,
-      responseBody
-    );
+		const x402Metadata = detectX402(
+			res.statusCode,
+			headers,
+			sdk.config.x402,
+			responseBody
+		);
 
-    // Determine which event to emit based on x402 state
-    if (x402Metadata) {
-      handleX402Event(context, x402Metadata, responseData, sdk);
-    } else {
-      // Standard request completion
-      const event = buildRequestCompletedEvent(context, responseData);
-      sdk.queue.enqueue(event);
-    }
-  } catch (error) {
-    if (sdk.config.debug) {
-      console.error(
-        "[ledgergate-sdk] Error in response finish handler:",
-        error
-      );
-    }
-  }
+		// Determine which event to emit based on x402 state
+		if (x402Metadata) {
+			handleX402Event(context, x402Metadata, responseData, sdk);
+		} else {
+			// Standard request completion
+			const event = buildRequestCompletedEvent(context, responseData);
+			sdk.queue.enqueue(event);
+		}
+	} catch (error) {
+		if (sdk.config.debug) {
+			console.error(
+				"[ledgergate-sdk] Error in response finish handler:",
+				error
+			);
+		}
+	}
 }
 
 /**
@@ -136,50 +136,50 @@ function handleResponseFinish(
  * ```
  */
 export function createExpressMiddleware(sdk: SdkInstance): RequestHandler {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // Fail-open: Wrap everything in try-catch to prevent SDK errors from breaking the app
-    try {
-      // 0. Check if path is excluded
-      if (isExcludedPath(req.path, sdk.config.excludePaths)) {
-        next();
-        return;
-      }
+	return (req: Request, res: Response, next: NextFunction) => {
+		// Fail-open: Wrap everything in try-catch to prevent SDK errors from breaking the app
+		try {
+			// 0. Check if path is excluded
+			if (isExcludedPath(req.path, sdk.config.excludePaths)) {
+				next();
+				return;
+			}
 
-      // 1. Sampling check
-      const sampled = shouldSample(sdk.config.sampleRate);
+			// 1. Sampling check
+			const sampled = shouldSample(sdk.config.sampleRate);
 
-      // 2. Create request context
-      const context = createRequestContext({
-        method: req.method,
-        path: req.path, // Express provides parsed path without query
-        headers: req.headers,
-        ...(req.ip ? { remoteAddress: req.ip } : {}),
-        redaction: sdk.config.redaction,
-        sampled,
-      });
+			// 2. Create request context
+			const context = createRequestContext({
+				method: req.method,
+				path: req.path, // Express provides parsed path without query
+				headers: req.headers,
+				...(req.ip ? { remoteAddress: req.ip } : {}),
+				redaction: sdk.config.redaction,
+				sampled,
+			});
 
-      // Attach context to locals for downstream access if needed
-      // biome-ignore lint/complexity/useLiteralKeys: TS requires bracket notation for index signatures
-      res.locals["x402Context"] = context;
+			// Attach context to locals for downstream access if needed
+			// biome-ignore lint/complexity/useLiteralKeys: TS requires bracket notation for index signatures
+			res.locals["x402Context"] = context;
 
-      // 3. Emit request received event (if sampled)
-      if (sampled) {
-        const event = buildRequestReceivedEvent(context);
-        sdk.queue.enqueue(event);
-      }
+			// 3. Emit request received event (if sampled)
+			if (sampled) {
+				const event = buildRequestReceivedEvent(context);
+				sdk.queue.enqueue(event);
+			}
 
-      // 4. Hook into response completion
-      // We use 'finish' event which fires when the response has been sent
-      res.on("finish", () => {
-        handleResponseFinish(res, context, sdk, sampled);
-      });
-    } catch (error) {
-      if (sdk.config.debug) {
-        console.error("[ledgergate-sdk] Error in middleware:", error);
-      }
-    }
+			// 4. Hook into response completion
+			// We use 'finish' event which fires when the response has been sent
+			res.on("finish", () => {
+				handleResponseFinish(res, context, sdk, sampled);
+			});
+		} catch (error) {
+			if (sdk.config.debug) {
+				console.error("[ledgergate-sdk] Error in middleware:", error);
+			}
+		}
 
-    // Always proceed
-    next();
-  };
+		// Always proceed
+		next();
+	};
 }

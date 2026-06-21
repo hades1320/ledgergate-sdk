@@ -7,166 +7,166 @@ import type { EventQueue } from "./types.js";
  * Configuration for event queue
  */
 interface QueueConfig {
-  readonly transport: TransportConfig;
-  readonly apiKey: string;
-  readonly endpoint: string;
-  readonly debug: boolean;
+	readonly transport: TransportConfig;
+	readonly apiKey: string;
+	readonly endpoint: string;
+	readonly debug: boolean;
 }
 
 /**
  * In-memory event queue with automatic batching and flushing
  */
 export function createEventQueue(config: QueueConfig): EventQueue {
-  const buffer: AnalyticsEvent[] = [];
-  let flushTimer: NodeJS.Timeout | undefined;
-  let isShuttingDown = false;
-  let pendingFlush: Promise<void> | undefined;
+	const buffer: AnalyticsEvent[] = [];
+	let flushTimer: NodeJS.Timeout | undefined;
+	let isShuttingDown = false;
+	let pendingFlush: Promise<void> | undefined;
 
-  /**
-   * Sends the current buffer to the transport layer
-   */
-  async function flushBuffer(): Promise<void> {
-    // Clear the timer if it exists
-    if (flushTimer) {
-      clearTimeout(flushTimer);
-      flushTimer = undefined;
-    }
+	/**
+	 * Sends the current buffer to the transport layer
+	 */
+	async function flushBuffer(): Promise<void> {
+		// Clear the timer if it exists
+		if (flushTimer) {
+			clearTimeout(flushTimer);
+			flushTimer = undefined;
+		}
 
-    // Nothing to flush
-    if (buffer.length === 0) {
-      return;
-    }
+		// Nothing to flush
+		if (buffer.length === 0) {
+			return;
+		}
 
-    // Extract events to send
-    const eventsToSend = buffer.splice(0, buffer.length);
+		// Extract events to send
+		const eventsToSend = buffer.splice(0, buffer.length);
 
-    if (config.debug) {
-      console.log(
-        `[ledgergate-sdk] Flushing ${eventsToSend.length} events to ${config.endpoint}`
-      );
-    }
+		if (config.debug) {
+			console.log(
+				`[ledgergate-sdk] Flushing ${eventsToSend.length} events to ${config.endpoint}`
+			);
+		}
 
-    try {
-      const result = await sendBatch(
-        eventsToSend,
-        config.transport,
-        config.apiKey,
-        config.endpoint
-      );
+		try {
+			const result = await sendBatch(
+				eventsToSend,
+				config.transport,
+				config.apiKey,
+				config.endpoint
+			);
 
-      if (config.debug) {
-        if (result.success) {
-          console.log(
-            `[ledgergate-sdk] Successfully sent ${eventsToSend.length} events`
-          );
-        } else {
-          console.warn(
-            `[ledgergate-sdk] Failed to send events: ${result.error}`
-          );
-        }
-      }
-    } catch (error) {
-      // Fail-open: log error but don't throw
-      if (config.debug) {
-        console.error("[ledgergate-sdk] Error flushing events:", error);
-      }
-    }
-  }
+			if (config.debug) {
+				if (result.success) {
+					console.log(
+						`[ledgergate-sdk] Successfully sent ${eventsToSend.length} events`
+					);
+				} else {
+					console.warn(
+						`[ledgergate-sdk] Failed to send events: ${result.error}`
+					);
+				}
+			}
+		} catch (error) {
+			// Fail-open: log error but don't throw
+			if (config.debug) {
+				console.error("[ledgergate-sdk] Error flushing events:", error);
+			}
+		}
+	}
 
-  /**
-   * Schedules an automatic flush
-   */
-  function scheduleFlush(): void {
-    // Don't schedule if already scheduled or shutting down
-    if (flushTimer || isShuttingDown) {
-      return;
-    }
+	/**
+	 * Schedules an automatic flush
+	 */
+	function scheduleFlush(): void {
+		// Don't schedule if already scheduled or shutting down
+		if (flushTimer || isShuttingDown) {
+			return;
+		}
 
-    flushTimer = setTimeout(() => {
-      flushTimer = undefined;
-      pendingFlush = flushBuffer();
-    }, config.transport.flushIntervalMs);
-  }
+		flushTimer = setTimeout(() => {
+			flushTimer = undefined;
+			pendingFlush = flushBuffer();
+		}, config.transport.flushIntervalMs);
+	}
 
-  /**
-   * Checks if buffer should be flushed immediately
-   */
-  function shouldFlushImmediately(): boolean {
-    return buffer.length >= config.transport.batchSize;
-  }
+	/**
+	 * Checks if buffer should be flushed immediately
+	 */
+	function shouldFlushImmediately(): boolean {
+		return buffer.length >= config.transport.batchSize;
+	}
 
-  return {
-    enqueue(event: AnalyticsEvent): void {
-      // Don't accept new events during shutdown
-      if (isShuttingDown) {
-        if (config.debug) {
-          console.warn(
-            "[ledgergate-sdk] Queue is shutting down, event dropped"
-          );
-        }
-        return;
-      }
+	return {
+		enqueue(event: AnalyticsEvent): void {
+			// Don't accept new events during shutdown
+			if (isShuttingDown) {
+				if (config.debug) {
+					console.warn(
+						"[ledgergate-sdk] Queue is shutting down, event dropped"
+					);
+				}
+				return;
+			}
 
-      // Add to buffer
-      buffer.push(event);
+			// Add to buffer
+			buffer.push(event);
 
-      if (config.debug) {
-        console.log(
-          `[ledgergate-sdk] Event enqueued (${buffer.length}/${config.transport.batchSize})`
-        );
-      }
+			if (config.debug) {
+				console.log(
+					`[ledgergate-sdk] Event enqueued (${buffer.length}/${config.transport.batchSize})`
+				);
+			}
 
-      // Flush immediately if batch size reached
-      if (shouldFlushImmediately()) {
-        pendingFlush = flushBuffer();
-      } else {
-        // Otherwise schedule a flush
-        scheduleFlush();
-      }
-    },
+			// Flush immediately if batch size reached
+			if (shouldFlushImmediately()) {
+				pendingFlush = flushBuffer();
+			} else {
+				// Otherwise schedule a flush
+				scheduleFlush();
+			}
+		},
 
-    async flush(): Promise<void> {
-      // Wait for any pending flush to complete
-      if (pendingFlush) {
-        await pendingFlush;
-      }
+		async flush(): Promise<void> {
+			// Wait for any pending flush to complete
+			if (pendingFlush) {
+				await pendingFlush;
+			}
 
-      // Flush remaining events
-      await flushBuffer();
-    },
+			// Flush remaining events
+			await flushBuffer();
+		},
 
-    async shutdown(): Promise<void> {
-      if (isShuttingDown) {
-        return;
-      }
+		async shutdown(): Promise<void> {
+			if (isShuttingDown) {
+				return;
+			}
 
-      isShuttingDown = true;
+			isShuttingDown = true;
 
-      if (config.debug) {
-        console.log("[ledgergate-sdk] Shutting down queue...");
-      }
+			if (config.debug) {
+				console.log("[ledgergate-sdk] Shutting down queue...");
+			}
 
-      // Clear any pending timer
-      if (flushTimer) {
-        clearTimeout(flushTimer);
-        flushTimer = undefined;
-      }
+			// Clear any pending timer
+			if (flushTimer) {
+				clearTimeout(flushTimer);
+				flushTimer = undefined;
+			}
 
-      // Wait for pending flush
-      if (pendingFlush) {
-        await pendingFlush;
-      }
+			// Wait for pending flush
+			if (pendingFlush) {
+				await pendingFlush;
+			}
 
-      // Flush remaining events
-      await flushBuffer();
+			// Flush remaining events
+			await flushBuffer();
 
-      if (config.debug) {
-        console.log("[ledgergate-sdk] Queue shutdown complete");
-      }
-    },
+			if (config.debug) {
+				console.log("[ledgergate-sdk] Queue shutdown complete");
+			}
+		},
 
-    size(): number {
-      return buffer.length;
-    },
-  };
+		size(): number {
+			return buffer.length;
+		},
+	};
 }

@@ -3,16 +3,16 @@
  * All names are lowercase for case-insensitive comparison
  */
 const SENSITIVE_HEADERS = new Set([
-  "authorization",
-  "cookie",
-  "set-cookie",
-  "x-api-key",
-  "x-auth-token",
-  "x-access-token",
-  "x-csrf-token",
-  "x-xsrf-token",
-  "proxy-authorization",
-  "www-authenticate",
+	"authorization",
+	"cookie",
+	"set-cookie",
+	"x-api-key",
+	"x-auth-token",
+	"x-access-token",
+	"x-csrf-token",
+	"x-xsrf-token",
+	"proxy-authorization",
+	"www-authenticate",
 ]);
 
 /**
@@ -27,30 +27,30 @@ const REDACTED = "[REDACTED]" as const;
  * @returns New object with sensitive headers redacted
  */
 export function redactHeaders(
-  headers: Record<string, string | string[] | undefined>,
-  allowlist: readonly string[] = []
+	headers: Record<string, string | string[] | undefined>,
+	allowlist: readonly string[] = []
 ): Record<string, string> {
-  const allowlistSet = new Set(allowlist.map((h) => h.toLowerCase()));
-  const result: Record<string, string> = {};
+	const allowlistSet = new Set(allowlist.map((h) => h.toLowerCase()));
+	const result: Record<string, string> = {};
 
-  for (const [key, value] of Object.entries(headers)) {
-    if (value === undefined) {
-      continue;
-    }
+	for (const [key, value] of Object.entries(headers)) {
+		if (value === undefined) {
+			continue;
+		}
 
-    const lowerKey = key.toLowerCase();
+		const lowerKey = key.toLowerCase();
 
-    // Skip if header is sensitive and not in allowlist
-    if (SENSITIVE_HEADERS.has(lowerKey) && !allowlistSet.has(lowerKey)) {
-      result[lowerKey] = REDACTED;
-      continue;
-    }
+		// Skip if header is sensitive and not in allowlist
+		if (SENSITIVE_HEADERS.has(lowerKey) && !allowlistSet.has(lowerKey)) {
+			result[lowerKey] = REDACTED;
+			continue;
+		}
 
-    // Flatten array values to comma-separated string
-    result[lowerKey] = Array.isArray(value) ? value.join(", ") : value;
-  }
+		// Flatten array values to comma-separated string
+		result[lowerKey] = Array.isArray(value) ? value.join(", ") : value;
+	}
 
-  return result;
+	return result;
 }
 
 /**
@@ -59,5 +59,5 @@ export function redactHeaders(
  * @returns true if the header is sensitive
  */
 export function isSensitiveHeader(headerName: string): boolean {
-  return SENSITIVE_HEADERS.has(headerName.toLowerCase());
+	return SENSITIVE_HEADERS.has(headerName.toLowerCase());
 }

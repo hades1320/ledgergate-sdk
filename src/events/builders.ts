@@ -10,26 +10,26 @@ import { EventType, PaymentStatus } from "./types.js";
  * Common base for event building
  */
 function createBaseEvent(
-  eventType: EventType,
-  context: RequestContext
+	eventType: EventType,
+	context: RequestContext
 ): AnalyticsEvent {
-  return {
-    schemaVersion: "1.0",
-    eventId: randomUUID(),
-    eventType,
-    timestamp: getTimestamp(),
-    request: {
-      id: context.id,
-      method: context.method,
-      path: context.path,
-      clientIpHash: context.clientIpHash,
-      headers: context.headers,
-    },
-    sdk: {
-      name: SDK_NAME,
-      version: SDK_VERSION,
-    },
-  };
+	return {
+		schemaVersion: "1.0",
+		eventId: randomUUID(),
+		eventType,
+		timestamp: getTimestamp(),
+		request: {
+			id: context.id,
+			method: context.method,
+			path: context.path,
+			clientIpHash: context.clientIpHash,
+			headers: context.headers,
+		},
+		sdk: {
+			name: SDK_NAME,
+			version: SDK_VERSION,
+		},
+	};
 }
 
 /**
@@ -38,9 +38,9 @@ function createBaseEvent(
  * @returns Analytics event
  */
 export function buildRequestReceivedEvent(
-  context: RequestContext
+	context: RequestContext
 ): AnalyticsEvent {
-  return createBaseEvent(EventType.REQUEST_RECEIVED, context);
+	return createBaseEvent(EventType.REQUEST_RECEIVED, context);
 }
 
 /**
@@ -51,25 +51,25 @@ export function buildRequestReceivedEvent(
  * @returns Analytics event
  */
 export function buildPaymentRequiredEvent(
-  context: RequestContext,
-  payment: X402Metadata,
-  response: ResponseData
+	context: RequestContext,
+	payment: X402Metadata,
+	response: ResponseData
 ): AnalyticsEvent {
-  const event = createBaseEvent(EventType.PAYMENT_REQUIRED, context);
+	const event = createBaseEvent(EventType.PAYMENT_REQUIRED, context);
 
-  event.request.statusCode = response.statusCode;
-  event.request.latencyMs = response.latencyMs;
+	event.request.statusCode = response.statusCode;
+	event.request.latencyMs = response.latencyMs;
 
-  event.payment = {
-    isRequired: payment.isPaymentRequired,
-    address: payment.paymentAddress,
-    amount: payment.paymentAmount,
-    network: payment.paymentNetwork,
-    token: payment.paymentToken,
-    status: payment.paymentStatus ?? PaymentStatus.REQUIRED,
-  };
+	event.payment = {
+		isRequired: payment.isPaymentRequired,
+		address: payment.paymentAddress,
+		amount: payment.paymentAmount,
+		network: payment.paymentNetwork,
+		token: payment.paymentToken,
+		status: payment.paymentStatus ?? PaymentStatus.REQUIRED,
+	};
 
-  return event;
+	return event;
 }
 
 /**
@@ -80,27 +80,27 @@ export function buildPaymentRequiredEvent(
  * @returns Analytics event
  */
 export function buildRequestCompletedEvent(
-  context: RequestContext,
-  response: ResponseData,
-  payment?: X402Metadata
+	context: RequestContext,
+	response: ResponseData,
+	payment?: X402Metadata
 ): AnalyticsEvent {
-  const event = createBaseEvent(EventType.REQUEST_COMPLETED, context);
+	const event = createBaseEvent(EventType.REQUEST_COMPLETED, context);
 
-  event.request.statusCode = response.statusCode;
-  event.request.latencyMs = response.latencyMs;
+	event.request.statusCode = response.statusCode;
+	event.request.latencyMs = response.latencyMs;
 
-  if (payment) {
-    event.payment = {
-      isRequired: payment.isPaymentRequired,
-      address: payment.paymentAddress,
-      amount: payment.paymentAmount,
-      network: payment.paymentNetwork,
-      token: payment.paymentToken,
-      status: payment.paymentStatus,
-    };
-  }
+	if (payment) {
+		event.payment = {
+			isRequired: payment.isPaymentRequired,
+			address: payment.paymentAddress,
+			amount: payment.paymentAmount,
+			network: payment.paymentNetwork,
+			token: payment.paymentToken,
+			status: payment.paymentStatus,
+		};
+	}
 
-  return event;
+	return event;
 }
 
 /**
@@ -111,25 +111,25 @@ export function buildRequestCompletedEvent(
  * @returns Analytics event
  */
 export function buildPaymentVerifiedEvent(
-  context: RequestContext,
-  payment: X402Metadata,
-  response: ResponseData
+	context: RequestContext,
+	payment: X402Metadata,
+	response: ResponseData
 ): AnalyticsEvent {
-  const event = createBaseEvent(EventType.PAYMENT_VERIFIED, context);
+	const event = createBaseEvent(EventType.PAYMENT_VERIFIED, context);
 
-  event.request.statusCode = response.statusCode;
-  event.request.latencyMs = response.latencyMs;
+	event.request.statusCode = response.statusCode;
+	event.request.latencyMs = response.latencyMs;
 
-  event.payment = {
-    isRequired: payment.isPaymentRequired,
-    address: payment.paymentAddress,
-    amount: payment.paymentAmount,
-    network: payment.paymentNetwork,
-    token: payment.paymentToken,
-    status: PaymentStatus.VERIFIED,
-  };
+	event.payment = {
+		isRequired: payment.isPaymentRequired,
+		address: payment.paymentAddress,
+		amount: payment.paymentAmount,
+		network: payment.paymentNetwork,
+		token: payment.paymentToken,
+		status: PaymentStatus.VERIFIED,
+	};
 
-  return event;
+	return event;
 }
 
 /**
@@ -140,23 +140,23 @@ export function buildPaymentVerifiedEvent(
  * @returns Analytics event
  */
 export function buildPaymentFailedEvent(
-  context: RequestContext,
-  payment: X402Metadata,
-  response: ResponseData
+	context: RequestContext,
+	payment: X402Metadata,
+	response: ResponseData
 ): AnalyticsEvent {
-  const event = createBaseEvent(EventType.PAYMENT_FAILED, context);
+	const event = createBaseEvent(EventType.PAYMENT_FAILED, context);
 
-  event.request.statusCode = response.statusCode;
-  event.request.latencyMs = response.latencyMs;
+	event.request.statusCode = response.statusCode;
+	event.request.latencyMs = response.latencyMs;
 
-  event.payment = {
-    isRequired: payment.isPaymentRequired,
-    address: payment.paymentAddress,
-    amount: payment.paymentAmount,
-    network: payment.paymentNetwork,
-    token: payment.paymentToken,
-    status: PaymentStatus.FAILED,
-  };
+	event.payment = {
+		isRequired: payment.isPaymentRequired,
+		address: payment.paymentAddress,
+		amount: payment.paymentAmount,
+		network: payment.paymentNetwork,
+		token: payment.paymentToken,
+		status: PaymentStatus.FAILED,
+	};
 
-  return event;
+	return event;
 }

@@ -12,61 +12,61 @@ import type { TransportResult } from "./types.js";
  * @returns Transport result with success status
  */
 export async function sendBatch(
-  events: AnalyticsEvent[],
-  config: TransportConfig,
-  apiKey: string,
-  endpoint: string
+	events: AnalyticsEvent[],
+	config: TransportConfig,
+	apiKey: string,
+	endpoint: string
 ): Promise<TransportResult> {
-  if (events.length === 0) {
-    return { success: true };
-  }
+	if (events.length === 0) {
+		return { success: true };
+	}
 
-  const result = await withRetry(
-    async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), config.timeoutMs);
+	const result = await withRetry(
+		async () => {
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), config.timeoutMs);
 
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "User-Agent": "ledgergate-sdk/1.0.0",
-          },
-          body: JSON.stringify(events),
-          signal: controller.signal,
-        });
+			try {
+				const response = await fetch(endpoint, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${apiKey}`,
+						"Content-Type": "application/json",
+						"User-Agent": "ledgergate-sdk/1.0.0",
+					},
+					body: JSON.stringify(events),
+					signal: controller.signal,
+				});
 
-        clearTimeout(timeoutId);
+				clearTimeout(timeoutId);
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+				}
 
-        return {
-          success: true,
-          statusCode: response.status,
-        };
-      } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
-      }
-    },
-    {
-      maxRetries: config.maxRetries,
-      baseDelayMs: 1000,
-      maxDelayMs: 30_000,
-    }
-  );
+				return {
+					success: true,
+					statusCode: response.status,
+				};
+			} catch (error) {
+				clearTimeout(timeoutId);
+				throw error;
+			}
+		},
+		{
+			maxRetries: config.maxRetries,
+			baseDelayMs: 1000,
+			maxDelayMs: 30_000,
+		}
+	);
 
-  if (result) {
-    return result;
-  }
+	if (result) {
+		return result;
+	}
 
-  // Retry exhausted - fail open
-  return {
-    success: false,
-    error: "All retry attempts exhausted",
-  };
+	// Retry exhausted - fail open
+	return {
+		success: false,
+		error: "All retry attempts exhausted",
+	};
 }

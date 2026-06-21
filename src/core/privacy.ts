@@ -20,10 +20,10 @@ const HASH_LENGTH = 16;
  * @returns Truncated SHA-256 hash of the IP
  */
 export function hashIp(ip: string, salt: string = DEFAULT_SALT): string {
-  const hash = createHash("sha256");
-  hash.update(salt);
-  hash.update(ip);
-  return hash.digest("hex").slice(0, HASH_LENGTH);
+	const hash = createHash("sha256");
+	hash.update(salt);
+	hash.update(ip);
+	return hash.digest("hex").slice(0, HASH_LENGTH);
 }
 
 /**
@@ -35,26 +35,26 @@ export function hashIp(ip: string, salt: string = DEFAULT_SALT): string {
  * @returns Best guess at the client's real IP
  */
 export function extractClientIp(
-  headers: Record<string, string | string[] | undefined>,
-  directIp?: string
+	headers: Record<string, string | string[] | undefined>,
+	directIp?: string
 ): string | undefined {
-  // Check X-Forwarded-For first (most common proxy header)
-  const forwardedFor = headers["x-forwarded-for"];
-  if (forwardedFor) {
-    const ips = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
-    // X-Forwarded-For can contain multiple IPs; the first is the client
-    const firstIp = ips?.split(",")[0]?.trim();
-    if (firstIp) {
-      return firstIp;
-    }
-  }
+	// Check X-Forwarded-For first (most common proxy header)
+	const forwardedFor = headers["x-forwarded-for"];
+	if (forwardedFor) {
+		const ips = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
+		// X-Forwarded-For can contain multiple IPs; the first is the client
+		const firstIp = ips?.split(",")[0]?.trim();
+		if (firstIp) {
+			return firstIp;
+		}
+	}
 
-  // Check X-Real-IP (used by nginx)
-  const realIp = headers["x-real-ip"];
-  if (realIp) {
-    return Array.isArray(realIp) ? realIp[0] : realIp;
-  }
+	// Check X-Real-IP (used by nginx)
+	const realIp = headers["x-real-ip"];
+	if (realIp) {
+		return Array.isArray(realIp) ? realIp[0] : realIp;
+	}
 
-  // Fall back to direct IP
-  return directIp;
+	// Fall back to direct IP
+	return directIp;
 }

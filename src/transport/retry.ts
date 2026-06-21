@@ -6,9 +6,9 @@ import type { RetryConfig } from "./types.js";
  * @returns Delay with jitter applied
  */
 function addJitter(delayMs: number): number {
-  const jitterRange = delayMs * 0.2;
-  const jitter = Math.random() * jitterRange * 2 - jitterRange;
-  return Math.max(0, delayMs + jitter);
+	const jitterRange = delayMs * 0.2;
+	const jitter = Math.random() * jitterRange * 2 - jitterRange;
+	return Math.max(0, delayMs + jitter);
 }
 
 /**
@@ -19,13 +19,13 @@ function addJitter(delayMs: number): number {
  * @returns Delay in milliseconds with jitter
  */
 function calculateBackoff(
-  attempt: number,
-  baseDelayMs: number,
-  maxDelayMs: number
+	attempt: number,
+	baseDelayMs: number,
+	maxDelayMs: number
 ): number {
-  const exponentialDelay = baseDelayMs * 2 ** attempt;
-  const cappedDelay = Math.min(exponentialDelay, maxDelayMs);
-  return addJitter(cappedDelay);
+	const exponentialDelay = baseDelayMs * 2 ** attempt;
+	const cappedDelay = Math.min(exponentialDelay, maxDelayMs);
+	return addJitter(cappedDelay);
 }
 
 /**
@@ -35,38 +35,38 @@ function calculateBackoff(
  * @returns Result of the function or undefined if all retries exhausted
  */
 export async function withRetry<T>(
-  fn: () => Promise<T>,
-  config: RetryConfig
+	fn: () => Promise<T>,
+	config: RetryConfig
 ): Promise<T | undefined> {
-  let lastError: unknown;
+	let lastError: unknown;
 
-  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
+	for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+		try {
+			return await fn();
+		} catch (error) {
+			lastError = error;
 
-      // Don't retry if we've exhausted attempts
-      if (attempt === config.maxRetries) {
-        break;
-      }
+			// Don't retry if we've exhausted attempts
+			if (attempt === config.maxRetries) {
+				break;
+			}
 
-      // Calculate backoff delay
-      const delayMs = calculateBackoff(
-        attempt,
-        config.baseDelayMs,
-        config.maxDelayMs
-      );
+			// Calculate backoff delay
+			const delayMs = calculateBackoff(
+				attempt,
+				config.baseDelayMs,
+				config.maxDelayMs
+			);
 
-      // Wait before retrying
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    }
-  }
+			// Wait before retrying
+			await new Promise((resolve) => setTimeout(resolve, delayMs));
+		}
+	}
 
-  // All retries exhausted - fail open
-  console.warn(
-    "[ledgergate-sdk] All retry attempts exhausted. Last error:",
-    lastError
-  );
-  return undefined;
+	// All retries exhausted - fail open
+	console.warn(
+		"[ledgergate-sdk] All retry attempts exhausted. Last error:",
+		lastError
+	);
+	return undefined;
 }

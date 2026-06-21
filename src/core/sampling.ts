@@ -4,11 +4,11 @@
  * @returns true if the request should be sampled
  */
 export function shouldSample(rate: number): boolean {
-  if (rate <= 0) {
-    return false;
-  }
-  if (rate >= 1) {
-    return true;
-  }
-  return Math.random() < rate;
+	if (rate <= 0) {
+		return false;
+	}
+	if (rate >= 1) {
+		return true;
+	}
+	return Math.random() < rate;
 }

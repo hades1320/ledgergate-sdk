@@ -3,8 +3,8 @@
  * Escapes all regex special characters except `*`, which is treated as a wildcard.
  */
 function patternToRegex(pattern: string): RegExp {
-  const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^${escaped.replace(/\*/g, ".*")}$`);
+	const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+	return new RegExp(`^${escaped.replace(/\*/g, ".*")}$`);
 }
 
 /**
@@ -19,13 +19,13 @@ function patternToRegex(pattern: string): RegExp {
  * @returns `true` if the path should be excluded from SDK tracking
  */
 export function isExcludedPath(
-  path: string,
-  excludePaths: readonly string[]
+	path: string,
+	excludePaths: readonly string[]
 ): boolean {
-  return excludePaths.some((pattern) => {
-    if (pattern.includes("*")) {
-      return patternToRegex(pattern).test(path);
-    }
-    return path === pattern;
-  });
+	return excludePaths.some((pattern) => {
+		if (pattern.includes("*")) {
+			return patternToRegex(pattern).test(path);
+		}
+		return path === pattern;
+	});
 }
