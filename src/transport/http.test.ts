@@ -74,7 +74,7 @@ describe("sendBatch", () => {
 				endpoint,
 				expect.objectContaining({
 					method: "POST",
-					body: JSON.stringify(events),
+					body: JSON.stringify({ json: events }),
 				})
 			);
 		});

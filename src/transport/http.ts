@@ -34,7 +34,7 @@ export async function sendBatch(
 						"Content-Type": "application/json",
 						"User-Agent": "ledgergate-sdk/1.0.0",
 					},
-					body: JSON.stringify(events),
+					body: JSON.stringify({ json: events }),
 					signal: controller.signal,
 				});
 

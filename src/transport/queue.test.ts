@@ -112,8 +112,8 @@ describe("createEventQueue", () => {
 
 			expect(fetchSpy).toHaveBeenCalledTimes(1);
 			const [, options] = fetchSpy.mock.calls[0] as [string, RequestInit];
-			const body = JSON.parse(options.body as string) as unknown[];
-			expect(body).toHaveLength(5);
+			const body = JSON.parse(options.body as string) as { json: unknown[] };
+			expect(body.json).toHaveLength(5);
 		});
 	});
 
