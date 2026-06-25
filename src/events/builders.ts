@@ -24,6 +24,12 @@ function createBaseEvent(
 			path: context.path,
 			clientIpHash: context.clientIpHash,
 			headers: context.headers,
+			...(context.paymentCredentials
+				? { paymentCredentials: context.paymentCredentials }
+				: {}),
+			...(context.outboundCalls && context.outboundCalls.length > 0
+				? { outboundCalls: context.outboundCalls }
+				: {}),
 		},
 		sdk: {
 			name: SDK_NAME,

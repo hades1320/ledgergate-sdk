@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { parseL402RequestHeader } from "../x402/request-parser.js";
+import type { X402RequestMetadata } from "../x402/types.js";
 import type { RedactionConfig } from "./config.js";
+import type { OutboundCall } from "./outbound.js";
 import { extractClientIp, hashIp } from "./privacy.js";
 import { redactHeaders } from "./redaction.js";
 import { createTimer, type Timer } from "./timing.js";
@@ -22,6 +25,10 @@ export interface RequestContext {
 	readonly clientIpHash?: string;
 	/** Whether this request is being sampled */
 	readonly sampled: boolean;
+	/** Parsed x402 payment credentials from the request */
+	readonly paymentCredentials?: X402RequestMetadata | undefined;
+	/** Tracked outbound calls made to facilitator during this request lifecycle */
+	readonly outboundCalls: OutboundCall[];
 }
 
 /**
@@ -73,6 +80,20 @@ export function createRequestContext(
 		}
 	}
 
+	const getHeader = (name: string): string | undefined => {
+		const value = headers[name] || headers[name.toLowerCase()];
+		if (Array.isArray(value)) {
+			return value[0];
+		}
+		return value;
+	};
+
+	const authHeader = getHeader("authorization");
+	let paymentCredentials: X402RequestMetadata | undefined;
+	if (authHeader) {
+		paymentCredentials = parseL402RequestHeader(authHeader);
+	}
+
 	const context: RequestContext = {
 		id: randomUUID(),
 		timer: createTimer(),
@@ -80,6 +101,8 @@ export function createRequestContext(
 		path: normalizePath(path),
 		headers: redactHeaders(headers, redaction.allowedHeaders),
 		sampled,
+		paymentCredentials,
+		outboundCalls: [],
 	};
 
 	// Only add clientIpHash if it's defined (exactOptionalPropertyTypes compliance)

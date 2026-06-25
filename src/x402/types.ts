@@ -15,3 +15,15 @@ export interface X402Metadata {
 	/** Current payment status detected from headers */
 	readonly paymentStatus?: "required" | "verified" | "failed";
 }
+
+/**
+ * x402-specific payment credentials extracted from incoming HTTP requests
+ */
+export interface X402RequestMetadata {
+	/** The specific token or currency symbol (e.g., base64 macaroon in L402) */
+	readonly paymentToken?: string | undefined;
+	/** The payment network (e.g., lightning) */
+	readonly paymentNetwork?: string | undefined;
+	/** Whether the request contained payment proof (e.g., preimage/signature) */
+	readonly hasPaymentProof: boolean;
+}

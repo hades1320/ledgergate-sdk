@@ -35,6 +35,7 @@ export {
 	type RequestContext,
 	type ResponseData,
 } from "./core/context.js";
+export { type OutboundCall, trackOutboundCall } from "./core/outbound.js";
 export { isExcludedPath } from "./core/paths.js";
 export { extractClientIp, hashIp } from "./core/privacy.js";
 export { isSensitiveHeader, redactHeaders } from "./core/redaction.js";
@@ -64,7 +65,8 @@ export {
 } from "./x402/config.js";
 export { detectX402, isPaymentRequired } from "./x402/detector.js";
 export { parsePaymentBody, parsePaymentHeaders } from "./x402/parser.js";
-export type { X402Metadata } from "./x402/types.js";
+export { parseL402RequestHeader } from "./x402/request-parser.js";
+export type { X402Metadata, X402RequestMetadata } from "./x402/types.js";
 
 /**
  * SDK version - injected at build time

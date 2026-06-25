@@ -30,6 +30,26 @@ export const AnalyticsEventSchema = z.object({
 		clientIpHash: z.string().optional(),
 		/** Redacted request headers */
 		headers: z.record(z.string(), z.string()).optional(),
+		/** Parsed x402 payment credentials from request */
+		paymentCredentials: z
+			.object({
+				paymentToken: z.string().optional(),
+				paymentNetwork: z.string().optional(),
+				hasPaymentProof: z.boolean(),
+			})
+			.optional(),
+		/** Tracked outbound calls made to facilitator during this request lifecycle */
+		outboundCalls: z
+			.array(
+				z.object({
+					url: z.string(),
+					method: z.string(),
+					statusCode: z.number().int().optional(),
+					latencyMs: z.number(),
+					error: z.string().optional(),
+				})
+			)
+			.optional(),
 	}),
 
 	/** x402 payment metadata (if applicable) */
