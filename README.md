@@ -47,6 +47,10 @@ npm install @ledgergate/ledgergate-sdk
 
 ## Quick Start
 
+> [!TIP]
+> Already using the official `x402` SDK to monetize your API? See the [Integrating with Official x402 SDK](#integrating-with-official-x402-sdk) section below to learn how to hook up LedgerGate analytics alongside your existing monetization setup.
+
+
 ### Express
 
 ```typescript
@@ -382,6 +386,113 @@ const customHeaderInfo = parsePaymentHeaders(
   responseHeaders,
   { address: "pay-to", amount: "pay-amt" }
 );
+```
+
+---
+
+## Integrating with Official x402 SDK
+
+To monetize your API while maintaining observability, you can use the official `@x402/express` (or `@x402/fastify`) SDK along with the LedgerGate SDK. 
+
+### Why Use Them Together?
+- **x402 SDK** handles payment challenges (HTTP `402`), payment network details, and on-chain verification (e.g., via EVM/Solana/Stellar).
+- **LedgerGate SDK** passively listens to response completions, captures payment outcomes, and forwards transaction latency/success metrics to your LedgerGate dashboard.
+
+### Express Integration
+
+Place the LedgerGate middleware **before** the x402 middleware. This ensures that even if x402 short-circuits and rejects an unpaid request with a `402` response, LedgerGate will still capture it and report the event to your dashboard.
+
+```typescript
+import express from "express";
+import { HTTPFacilitatorClient } from "@x402/core/server";
+import { paymentMiddleware, x402ResourceServer } from "@x402/express";
+import { ExactEvmScheme } from "@x402/evm/exact/server";
+import { createLedgergateSdk, createExpressMiddleware } from "ledgergate-sdk";
+
+const app = express();
+
+// 1. Initialize & register LedgerGate SDK (Always register early in the stack)
+const sdk = createLedgergateSdk({
+  apiKey: process.env.LEDGERGATE_API_KEY!,
+  debug: process.env.NODE_ENV !== "production",
+});
+app.use(createExpressMiddleware(sdk));
+
+// 2. Initialize official x402 Resource Server & Schemes
+const facilitatorClient = new HTTPFacilitatorClient({ url: "https://x402.org/facilitator" });
+const x402Server = new x402ResourceServer(facilitatorClient)
+  .register("eip155:84532", new ExactEvmScheme()); // e.g. Base Sepolia EVM network
+
+// 3. Define route protection configuration
+const monetizationMiddleware = paymentMiddleware(x402Server, {
+  "/premium-endpoint": {
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.05",
+        network: "eip155:84532",
+        payTo: "0xYourWalletAddress",
+      },
+    ],
+  },
+});
+
+// 4. Register routes
+app.get("/premium-endpoint", monetizationMiddleware, (_req, res) => {
+  res.json({ data: "This is premium monetized content!" });
+});
+
+app.listen(3000);
+```
+
+### Fastify Integration
+
+Register the `fastifyLedgergate` plugin **before** applying any x402 hooks or middlewares:
+
+```typescript
+import Fastify from "fastify";
+import { paymentMiddleware, x402ResourceServer } from "@x402/fastify";
+import { ExactEvmScheme } from "@x402/evm/exact/server";
+import { HTTPFacilitatorClient } from "@x402/core/server";
+import { createLedgergateSdk, fastifyLedgergate } from "ledgergate-sdk";
+
+const app = Fastify();
+
+// 1. Initialize & register LedgerGate SDK
+const sdk = createLedgergateSdk({
+  apiKey: process.env.LEDGERGATE_API_KEY!,
+  debug: process.env.NODE_ENV !== "production",
+});
+await app.register(fastifyLedgergate, { sdk });
+
+// 2. Initialize x402 Resource Server
+const facilitatorClient = new HTTPFacilitatorClient({ url: "https://x402.org/facilitator" });
+const x402Server = new x402ResourceServer(facilitatorClient)
+  .register("eip155:84532", new ExactEvmScheme());
+
+// 3. Setup x402 route payment configuration
+const paymentConfig = {
+  "GET /premium-endpoint": {
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.05",
+        network: "eip155:84532",
+        payTo: "0xYourWalletAddress",
+      },
+    ],
+  },
+};
+
+// 4. Register x402 check hook
+app.addHook("preHandler", paymentMiddleware(paymentConfig, x402Server));
+
+// 5. Register routes
+app.get("/premium-endpoint", async (request, reply) => {
+  return { data: "This is premium monetized content!" };
+});
+
+await app.listen({ port: 3000 });
 ```
 
 ---
