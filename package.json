@@ -1,6 +1,6 @@
 {
   "name": "@ledgergate/ledgergate-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "x402 Observability SDK for HTTP APIs",
   "type": "module",
   "main": "./dist/index.cjs",
