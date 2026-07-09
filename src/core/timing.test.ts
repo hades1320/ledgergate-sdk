@@ -69,12 +69,13 @@ describe("createTimer", () => {
 	});
 });
 
+const ISO_8601_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
+
 describe("getTimestamp", () => {
 	it("should return ISO 8601 format", () => {
 		const timestamp = getTimestamp();
 		// ISO 8601 format: YYYY-MM-DDTHH:mm:ss.sssZ
-		const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
-		expect(timestamp).toMatch(isoRegex);
+		expect(timestamp).toMatch(ISO_8601_REGEX);
 	});
 
 	it("should return a valid date string", () => {

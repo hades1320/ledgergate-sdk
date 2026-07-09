@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { extractClientIp, hashIp } from "./privacy.js";
 
+const HEX_16_REGEX = /^[0-9a-f]{16}$/;
+
 describe("hashIp", () => {
 	describe("basic functionality", () => {
 		it("should return a 16-character hex string", () => {
 			const hash = hashIp("192.168.1.1");
 			expect(hash).toHaveLength(16);
-			expect(hash).toMatch(/^[0-9a-f]{16}$/);
+			expect(hash).toMatch(HEX_16_REGEX);
 		});
 
 		it("should be deterministic with same salt", () => {
@@ -46,7 +48,7 @@ describe("hashIp", () => {
 		it("should handle IPv6 addresses", () => {
 			const hash = hashIp("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
 			expect(hash).toHaveLength(16);
-			expect(hash).toMatch(/^[0-9a-f]{16}$/);
+			expect(hash).toMatch(HEX_16_REGEX);
 		});
 
 		it("should handle localhost", () => {

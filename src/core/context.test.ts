@@ -5,6 +5,9 @@ import {
 	createRequestContext,
 } from "./context.js";
 
+const UUID_V4_REGEX =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 describe("createRequestContext", () => {
 	const baseOptions: CreateContextOptions = {
 		method: "GET",
@@ -23,9 +26,7 @@ describe("createRequestContext", () => {
 
 		it("should generate valid UUID v4 format", () => {
 			const ctx = createRequestContext(baseOptions);
-			const uuidV4Regex =
-				/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-			expect(ctx.id).toMatch(uuidV4Regex);
+			expect(ctx.id).toMatch(UUID_V4_REGEX);
 		});
 	});
 

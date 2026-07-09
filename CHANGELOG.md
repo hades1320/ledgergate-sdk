@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-25
+
+### Added
+
+- **Outbound Request Tracking & x402 Parsing** — Added outbound call tracking and metrics for `/verify` and `/settle` endpoints, and implemented L402 authorization header parsing.
+- **Integration Documentation** — Added a comprehensive x402 SDK integration guide for Express and Fastify.
+
+## [1.0.1] - 2026-06-22
+
+### Added
+
+- **Publish Workflow** — Automated publishing to npm via GitHub Actions workflow.
+
+### Changed
+
+- **Scoped Package Rename** — Updated package name to scoped format `@ledgergate/ledgergate-sdk`.
+- **Indentation Style** — Migrated source files to tab-based indentation matching biome settings.
+
+### Fixed
+
+- **Batch Transmission Payload** — Wrapped batch events array in `{ json: events }` object inside HTTP POST request body.
+
 ## [1.0.0] - 2026-03-14
 
 ### Changed
