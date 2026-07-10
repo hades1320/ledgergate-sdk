@@ -59,7 +59,8 @@
     "url": "https://github.com/hades1320/ledgergate-sdk/issues"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "sideEffects": false,
   "engines": {
