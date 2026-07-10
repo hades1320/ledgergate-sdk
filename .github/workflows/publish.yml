@@ -75,8 +75,5 @@ jobs:
           fi
           echo "✅ Version match: $PKG_VERSION"
 
-      - name: Update npm to latest
-        run: npm install -g npm@latest
-
       - name: Publish to npm
         run: npm publish --provenance --ignore-scripts
