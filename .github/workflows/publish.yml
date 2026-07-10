@@ -57,6 +57,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Ensure stable npm version
         run: npm install -g npm@10
