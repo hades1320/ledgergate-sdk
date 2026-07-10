@@ -78,4 +78,4 @@ jobs:
           echo "✅ Version match: $PKG_VERSION"
 
       - name: Publish to npm
-        run: npm publish --provenance --ignore-scripts
+        run: npm publish --provenance
